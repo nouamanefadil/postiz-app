@@ -1,0 +1,48 @@
+# Tayra Social: a PR that changes the Prisma schema cannot merge until it carries
+# the label `db-schema-reviewed` (required status check "db-schema-review").
+#
+# Production runs `prisma db push` on container start and an image rollback does
+# not undo schema changes, so every schema change needs a human compatibility
+# review first (deploy/README.md "Database schema changes").
+#
+# Separate from ci.yml on purpose: label events re-run this cheap check only. In
+# ci.yml they would re-run the 25-minute build, and skipping jobs there instead
+# would let a label event turn a failed build check green.
+name: DB schema gate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: db-schema-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  db-schema-review:
+    name: db-schema-review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require review label when schema.prisma changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          schema=libraries/nestjs-libraries/src/database/prisma/schema.prisma
+          if ! gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename' | grep -qxF "$schema"; then
+            echo "schema.prisma not changed."
+            exit 0
+          fi
+          if jq -e 'index("db-schema-reviewed") != null' <<<"$LABELS" > /dev/null; then
+            echo "::notice::schema.prisma changed and the PR is labelled db-schema-reviewed."
+            exit 0
+          fi
+          echo "::error::This PR changes $schema. Review backward compatibility (deploy/README.md, 'Database schema changes'), then add the label db-schema-reviewed."
+          exit 1
