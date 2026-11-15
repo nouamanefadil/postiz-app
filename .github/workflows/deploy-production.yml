@@ -1,0 +1,193 @@
+# Tayra Social: build, publish and deploy to production after CI passes on main.
+#
+# Trust model (workflow_run):
+# - This file always runs from the default branch, never from a PR, so a PR
+#   cannot change what runs here or reach the production secrets.
+# - The `branches: [main]` filter matches the head *branch name*, which a fork
+#   PR can also call "main". The job `if:` therefore also requires a `push`
+#   event, from this repository, that succeeded, and runs only in this repo.
+# - It deploys exactly `workflow_run.head_sha` (the commit CI tested), checked
+#   to be 40-hex and still the tip of main (an older run never overwrites a newer one).
+# - Only immutable `sha-<commit>` tags are deployed, never `latest`.
+# - The SSH key can only run the forced deploy command on the VPS.
+# - Untrusted event fields are only used in `if:` expressions, never in shell.
+name: Deploy production
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/nouamanefadil/tayra-social
+  SHA: ${{ github.event.workflow_run.head_sha }}
+
+jobs:
+  guard:
+    name: Verify trigger
+    if: >-
+      github.repository == 'nouamanefadil/postiz-app' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      deploy: ${{ steps.tip.outputs.deploy }}
+    steps:
+      - name: Commit must be the current tip of main
+        id: tip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::invalid head_sha"; exit 1; }
+          tip="$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
+          if [ "$tip" = "$SHA" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::$SHA is no longer the tip of main ($tip); skipping. The newer commit deploys after its own CI."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    name: Build, publish, deploy
+    needs: guard
+    if: needs.guard.outputs.deploy == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Image metadata
+        id: meta
+        run: |
+          {
+            echo "version=$(git describe --tags --always)"
+            echo "schema=$(sha256sum libraries/nestjs-libraries/src/database/prisma/schema.prisma | cut -d' ' -f1)"
+            echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Is sha-${{ env.SHA }} already published?
+        id: exists
+        run: |
+          if docker buildx imagetools inspect "$IMAGE:sha-$SHA" > /dev/null 2>&1; then
+            echo "::notice::$IMAGE:sha-$SHA already exists; immutable tags are never rebuilt."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and push sha-${{ env.SHA }}
+        if: steps.exists.outputs.exists != 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.dev
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          sbom: false
+          tags: ${{ env.IMAGE }}:sha-${{ env.SHA }}
+          build-args: |
+            NEXT_PUBLIC_VERSION=${{ steps.meta.outputs.version }}
+          labels: |
+            org.opencontainers.image.title=Tayra Social
+            org.opencontainers.image.description=Tayra Social, a modified version of Postiz (AGPL-3.0)
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}/tree/${{ env.SHA }}
+            org.opencontainers.image.revision=${{ env.SHA }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.created=${{ steps.meta.outputs.created }}
+            org.opencontainers.image.licenses=AGPL-3.0
+            com.maisontayra.prisma-schema-sha256=${{ steps.meta.outputs.schema }}
+          # Reuse the base layers (apt, pnpm) of the previous release.
+          cache-from: type=registry,ref=${{ env.IMAGE }}:latest
+          cache-to: type=inline
+
+      - name: Tag latest
+        run: docker buildx imagetools create --tag "$IMAGE:latest" "$IMAGE:sha-$SHA"
+
+      - name: Deploy on VPS
+        id: deploy
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts_deploy
+          set +e
+          # The forced command on the server ignores everything but this argument.
+          ssh -i ~/.ssh/deploy_key -p "${VPS_SSH_PORT:-22}" \
+            -o BatchMode=yes -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts_deploy \
+            -o ConnectTimeout=20 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 \
+            "$VPS_USER@$VPS_HOST" "sha-$SHA"
+          rc=$?
+          rm -f ~/.ssh/deploy_key
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          exit "$rc"
+
+      - name: Public URL check
+        env:
+          URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+          curl -fsS --retry 6 --retry-delay 10 --retry-all-errors --max-time 15 \
+            -o /dev/null -w 'api %{http_code}\n' "$URL/api/auth/can-register"
+          curl -fsS --retry 6 --retry-delay 10 --retry-all-errors --max-time 15 \
+            -o /dev/null -w 'web %{http_code}\n' "$URL/"
+
+      - name: Summary
+        if: always()
+        env:
+          RC: ${{ steps.deploy.outputs.rc }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          case "$RC" in
+            0) result="Deployed and healthy" ;;
+            1) result="FAILED: production unchanged or rolled back to the previous image (database not restored)" ;;
+            2) result="FAILED AND ROLLBACK FAILED: manual intervention needed (deploy/README.md)" ;;
+            64) result="Rejected by the VPS: invalid tag" ;;
+            "") result="Did not reach the VPS" ;;
+            *) result="FAILED (ssh exit $RC): see log above" ;;
+          esac
+          {
+            echo "### Production deploy"
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Result | $result |"
+            echo "| Commit | \`$SHA\` |"
+            echo "| Image | \`$IMAGE:sha-$SHA\` |"
+            echo "| Version | \`$VERSION\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

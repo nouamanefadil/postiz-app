@@ -16,8 +16,18 @@ dist
 **/.git
 **/*.md
 **/LICENSE
+# Tayra Social: ship the root AGPL-3.0 LICENSE in the image (/app/LICENSE).
+!LICENSE
 **/npm-debug.log
 **/*.vscode
 .git
 .github
 reports
+# Tayra Social: never send secrets or deploy tooling into the image.
+# Nothing in the build reads a .env (the official image is built without one).
+**/.env*
+**/*.pem
+**/*.key
+**/.DS_Store
+.claude
+deploy

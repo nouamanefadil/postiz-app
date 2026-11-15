@@ -1,0 +1,121 @@
+# Tayra Social CI. A successful run on a push to main triggers deploy-production.yml.
+#
+# What runs (and what deliberately does not), see deploy/README.md "CI":
+# - frozen install, type check of backend / orchestrator (worker) / frontend
+# - ESLint on changed frontend files: ADVISORY. The repo-root ESLint config crashes
+#   while loading (upstream issue) and upstream code already has errors under the
+#   frontend config, so lint cannot gate merges without failing every upstream sync.
+# - no test step: the repo has no test files and `pnpm test` needs the missing @nx/jest.
+# - Docker build on PRs (it runs the real `pnpm run build`, so it is also the app
+#   build check); on main the deploy workflow builds the image instead.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE: ghcr.io/nouamanefadil/tayra-social
+  # Same heap as the production build (Dockerfile.dev); the default heap is too small.
+  NODE_OPTIONS: --max-old-space-size=4096
+
+jobs:
+  checks:
+    name: Type check, lint, scripts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # pnpm version comes from "packageManager", Node from "engines" in package.json.
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check backend
+        run: pnpm exec tsc --noEmit -p apps/backend/tsconfig.build.json
+      - name: Type check worker (orchestrator)
+        run: pnpm exec tsc --noEmit -p apps/orchestrator/tsconfig.build.json
+      - name: Type check frontend
+        run: pnpm exec tsc --noEmit -p apps/frontend/tsconfig.json
+
+      - name: ESLint changed frontend files (advisory)
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA"...HEAD -- \
+            'apps/frontend/src/*.ts' 'apps/frontend/src/*.tsx' 'apps/frontend/src/*.js' 'apps/frontend/src/*.jsx' \
+            | sed 's#^apps/frontend/##')
+          if [ "${#files[@]}" -eq 0 ]; then echo "No frontend files changed."; exit 0; fi
+          cd apps/frontend && pnpm exec eslint "${files[@]}"
+
+      - name: Shellcheck deploy scripts
+        run: shellcheck deploy/vps/*.sh
+
+      - name: Validate Docker Compose file
+        run: docker compose -f docker-compose.yaml config --quiet
+
+  docker:
+    name: Docker build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Dockerfile checks
+        run: docker buildx build --check -f Dockerfile.dev .
+
+      - name: Version
+        id: meta
+        run: echo "version=$(git describe --tags --always)" >> "$GITHUB_OUTPUT"
+
+      # Not pushed. Loaded so the image contents can be verified below.
+      - name: Build image (runs pnpm install + pnpm run build)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.dev
+          platforms: linux/amd64
+          push: false
+          load: true
+          provenance: false
+          sbom: false
+          tags: tayra-social:ci
+          build-args: |
+            NEXT_PUBLIC_VERSION=${{ steps.meta.outputs.version }}
+          cache-from: type=registry,ref=${{ env.IMAGE }}:latest
+
+      - name: Verify image contents (AGPL LICENSE present, no .env files)
+        run: |
+          docker run --rm --entrypoint sh tayra-social:ci -c '
+            set -e
+            grep -q "GNU AFFERO GENERAL PUBLIC LICENSE" /app/LICENSE
+            leaked=$(find /app -name ".env*" -not -path "*/node_modules/*" | head -5)
+            [ -z "$leaked" ] || { echo "env files in image: $leaked"; exit 1; }
+            [ -d /app/apps/backend/dist ] && [ -d /app/apps/orchestrator/dist ] && [ -d /app/apps/frontend/.next ]
+            echo "image ok: LICENSE present, no .env files, all three apps built"'

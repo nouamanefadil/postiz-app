@@ -1,0 +1,85 @@
+# AGPL-3.0 compliance: Tayra Social
+
+> Engineering checklist, not legal advice. Have a lawyer review it before
+> Tayra Social is offered to customers.
+
+Tayra Social is a modified version of **Postiz**, Copyright (C) 2025 Nevo David,
+licensed under the **GNU Affero General Public License v3.0 or (at your option) any
+later version** (see `/LICENSE`). Renaming or rebranding does not change that: the
+whole program, including Tayra Social's modifications, stays under the AGPL, and
+whoever runs it for users has the obligations below.
+
+## Status
+
+| Obligation | Where it comes from | Status |
+|---|---|---|
+| Keep the license text | AGPL §4, §5 | Done: `/LICENSE` in the repo, `/app/LICENSE` in every image (CI verifies), OCI label `org.opencontainers.image.licenses=AGPL-3.0` |
+| Keep copyright and license notices | §4, §5 | Done: no upstream notice is removed. Rule for all future work: never delete or alter upstream copyright/license headers or the `LICENSE` file |
+| Mark modifications, with dates | §5(a) | Done for this change set (see "Modification log"); keep it up to date. Git history is the detailed record |
+| License modifications under AGPL | §5(c) | Done: all Tayra changes in this repository are AGPL-3.0 |
+| **Offer the source to network users** | **§13** | **OPEN, blocks the SaaS launch** (see below) |
+| Corresponding Source includes build/deploy scripts | §1 | Done: `Dockerfile.dev`, `.github/workflows/`, `deploy/` are in the public repo |
+| Third-party licenses reviewed | each dependency | **OPEN**: Polotno needs a commercial license or must stay disabled (see below) |
+| No added restrictions on users | §10 | Rule: Terms of Service must not forbid what the AGPL allows (copying, modifying the source) |
+
+## §13: the network-use obligation (open)
+
+Anyone who interacts with Tayra Social over the network must be **prominently offered**
+the Corresponding Source of the exact version they are using, at no charge.
+
+What exists already:
+- the fork is public: `https://github.com/nouamanefadil/postiz-app`;
+- every production image is built from one commit and labelled with it
+  (`org.opencontainers.image.revision`); the deployed commit is the image tag
+  `sha-<commit>` and is recorded in `/var/lib/tayra-deploy/history`;
+- `NEXT_PUBLIC_VERSION` (`git describe` of the commit) is shown in the app.
+
+What is still needed before launch (a feature PR, not part of this infrastructure):
+- a visible **"Source code"** link in the app (for example the footer and the
+  settings/about page) to `https://github.com/nouamanefadil/postiz-app/tree/<deployed commit>`,
+  with a one-line AGPL notice;
+- keep the repository public, or provide the source another way if it ever becomes
+  private (a download of the exact deployed commit, offered in the app);
+- keep each deployed commit reachable (do not delete branches or force-push `main`;
+  `main` is protected against both).
+
+## Third-party dependencies
+
+The AGPL covers Postiz's own code. Each dependency keeps its own license, and some
+restrict commercial use regardless of the AGPL.
+
+**Polotno** (`polotno`, the in-app design editor). Its license reads: free for
+non-commercial products and local development; **commercial usage requires a paid
+license** from polotno.com. The editor is **not** disabled when `NEXT_PUBLIC_POLOTNO`
+is empty (as in production today): the media dialog
+(`apps/frontend/src/components/media/media.component.tsx`) always loads it, and the
+variable only supplies Polotno's API key. Before charging customers: either buy a
+Polotno license, or remove/hide the editor in a Tayra feature PR.
+
+Spot-checked, permissive: Next.js (MIT), NestJS (MIT), Temporal SDK (MIT),
+CopilotKit (MIT), Prisma (Apache-2.0), Mastra (Apache-2.0), sharp (Apache-2.0).
+
+Full review before launch, from a clean install:
+```bash
+pnpm licenses list --prod --long > licenses.txt
+```
+Flag anything that is not MIT / ISC / BSD / Apache-2.0 / MPL-2.0 / AGPL / GPL-compatible,
+especially "SEE LICENSE IN", "UNLICENSED", "Commercial", SSPL, BSL and Elastic. Also
+check fonts, icons and images shipped in `apps/frontend/public`.
+
+## Name and branding
+
+The AGPL does not license the Postiz name or logo. Use "Tayra Social" as the product
+name. Factual credit such as "based on Postiz" is fine, but do not suggest that the
+Postiz project endorses Tayra Social.
+
+## Modification log
+
+Record every Tayra Social change to the upstream code here (date, what, why). New
+files carry the Tayra Social context in a header comment; edits to upstream files are
+marked with a `Tayra Social:` comment where the file format allows.
+
+| Date | Change | Files |
+|---|---|---|
+| 2026-11-15 | CI/CD and production deployment infrastructure | `.github/workflows/ci.yml`, `.github/workflows/deploy-production.yml`, `.github/workflows/db-schema-gate.yml`, `deploy/**` (new) |
+| 2026-11-15 | Docker build context: keep `LICENSE` in the image, exclude `.env*`, keys and deploy tooling | `.dockerignore` (modified upstream file, marked) |
