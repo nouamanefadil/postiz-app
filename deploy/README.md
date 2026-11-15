@@ -421,6 +421,13 @@ The rollback target is the official image pinned by digest (`…/postiz-app@sha2
 present on the server), so a failed first deploy returns to exactly today's image.
 Merge when you can watch the Actions run (about 35 minutes).
 
+**Before that merge, update the VPS scripts.** The copies installed during setup
+(2026-11-15) came from commit `c38c1807`. Two ShellCheck-compatibility edits followed
+(a comment in `deploy.sh`, an equivalent `if` in `backup.sh`; same runtime behaviour),
+so the server copies no longer match the repository. Reinstall them from the commit
+being merged and check the hashes, as in "Updating the VPS scripts" below. Do not
+merge until all three hashes match.
+
 ## Rollback
 
 **Automatic:** on any failure after the switch, `deploy.sh` restores the previous image
@@ -488,8 +495,16 @@ Never merge upstream `main`. Only tagged, stable releases:
 
 ## Updating the VPS scripts
 
-CI cannot change the scripts on the server (by design). After a change to
-`deploy/vps/*.sh` is merged, repeat "Scripts" in setup step 3.
+CI cannot change the scripts on the server (by design), so the server copies must be
+kept in step with the repository by hand. Whenever `deploy/vps/*.sh` changes, repeat
+"Scripts" in setup step 3 from a checkout of the exact commit that will be deployed
+(no deploy may be running), then confirm the server matches the repository:
+```bash
+shasum -a 256 deploy/vps/deploy.sh deploy/vps/backup.sh deploy/vps/health-check.sh      # on the Mac
+ssh -i ~/.ssh/tayra_vps root@72.62.189.177 'cd /opt/tayra-deploy && sha256sum deploy.sh backup.sh health-check.sh && stat -c "%a %U:%G %n" deploy.sh backup.sh health-check.sh'
+# every hash must match; mode must be 755 root:root
+```
+A mismatch means the server would run different deploy logic than the code reviewed in the PR.
 
 ## Troubleshooting
 

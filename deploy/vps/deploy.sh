@@ -98,7 +98,9 @@ rollback() {
   exit 2
 }
 
-# shellcheck disable=SC2329  # invoked via `trap on_error ERR`
+# Invoked via `trap on_error ERR`. ShellCheck reports trap-only functions as
+# SC2317 (<= 0.10, e.g. Ubuntu 24.04 runners) or SC2329 (>= 0.11).
+# shellcheck disable=SC2317,SC2329
 on_error() {
   local rc=$?
   [ "$ROLLING_BACK" = 1 ] && exit 2

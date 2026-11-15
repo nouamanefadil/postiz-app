@@ -33,7 +33,9 @@ free_mb=$(df -Pm "$BACKUP_DIR" | awk 'NR==2 {print $4}')
 # Names come from the container's own environment; neither is a secret.
 db_user=$(docker exec "$DB_CONTAINER" printenv POSTGRES_USER)
 db_name=$(docker exec "$DB_CONTAINER" printenv POSTGRES_DB)
-[ -n "$db_user" ] && [ -n "$db_name" ] || die "POSTGRES_USER/POSTGRES_DB not set in $DB_CONTAINER"
+if [ -z "$db_user" ] || [ -z "$db_name" ]; then
+  die "POSTGRES_USER/POSTGRES_DB not set in $DB_CONTAINER"
+fi
 
 file="$BACKUP_DIR/postiz-$(date -u +%Y%m%dT%H%M%SZ)-${label}.dump"
 tmp="$file.partial"
