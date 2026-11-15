@@ -188,84 +188,130 @@ because that merge deploys. If something is missing the deploy fails before touc
 production (no SSH user, image not public, missing image file) and can be re-run with
 "Re-run failed jobs" once fixed.
 
-### 1. GitHub: disable upstream workflows that do not belong in the fork
+Status: steps 1 to 4 were completed and verified on 2026-11-15. The commands below
+are the ones that were run; repeat them only to rebuild the setup (new server, key
+rotation). Shell: every block is plain `bash`. They also work pasted into macOS
+`zsh` as written, but if you put SSH options into a variable, run the block with
+`bash` (zsh does not word-split `$VAR`).
 
-| Workflow | Why |
-|---|---|
-| `build.yml` | duplicate full build on every push; replaced by `ci.yml` |
-| `build-containers.yml` | any tag push would try to publish to `ghcr.io/gitroomhq/postiz-app` |
-| `staging-conflicts.yml` | 10-minute cron that runs Claude with upstream's secrets |
+### 1. GitHub: Actions on the fork, and upstream workflows
+
+GitHub keeps workflows off on a fork until the owner clicks **"I understand my
+workflows, go ahead and enable them"** on the Actions tab (UI only). Only then are
+workflows registered and can be disabled one by one:
+
+| Workflow | Why | State |
+|---|---|---|
+| `build.yml` | duplicate full build on every push; replaced by `ci.yml` | `disabled_manually` |
+| `build-containers.yml` | any tag push would try to publish to `ghcr.io/gitroomhq/postiz-app` | `disabled_manually` |
+| `staging-conflicts.yml` | 10-minute cron that runs Claude with upstream's secrets | `disabled_fork` |
 
 ```bash
 gh workflow disable build.yml -R nouamanefadil/postiz-app
 gh workflow disable build-containers.yml -R nouamanefadil/postiz-app
-gh workflow disable staging-conflicts.yml -R nouamanefadil/postiz-app
+gh api "repos/nouamanefadil/postiz-app/actions/workflows?per_page=100" --jq '.workflows[] | "\(.state)\t\(.path)"'
 ```
+
+`staging-conflicts.yml` (like `stale.yml`) is a scheduled workflow, and GitHub
+disables scheduled workflows on forks automatically (`disabled_fork`). Leave it that
+way. The API refuses to disable it again ("not active"), and enabling it to then
+disable it would arm the 10-minute cron. If the Actions tab ever offers to enable
+scheduled workflows on this fork, do not accept.
 
 Kept: `codeql.yml` (security scanning), and `deploy-aws.yml` / `stale.yml`, which are
 guarded to `gitroomhq/postiz-app` and never run here. The files are not edited, so
-upstream merges do not conflict. After every upstream sync, check
-`gh workflow list --all` for new or renamed upstream workflows.
+upstream merges do not conflict. After every upstream sync, re-run the `gh api` line
+above and look for new or renamed upstream workflows.
 
 ### 2. Deploy SSH key (on your Mac)
 
-A dedicated key, used only by GitHub Actions. Not your personal `tayra_vps` key.
+A dedicated key, used only by GitHub Actions. Never your personal `tayra_vps` key.
 
 ```bash
-ssh-keygen -t ed25519 -N "" -C "tayra-deploy@github-actions" -f ~/.ssh/tayra_deploy_gha
-ssh-keygen -F 72.62.189.177 -f ~/.ssh/known_hosts   # pinned host key, for VPS_KNOWN_HOSTS
+ls ~/.ssh/tayra_social_deploy* 2>/dev/null && echo "exists: do not overwrite"
+ssh-keygen -q -t ed25519 -a 100 -N "" -C "tayra-social-deploy@github-actions" -f ~/.ssh/tayra_social_deploy
+chmod 600 ~/.ssh/tayra_social_deploy && chmod 644 ~/.ssh/tayra_social_deploy.pub
+ssh-keygen -lf ~/.ssh/tayra_social_deploy.pub        # note the SHA256 fingerprint
 ```
 
-Check that the printed host key matches the server
-(`ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` on the VPS). Use only the line(s)
-for the host, without the `# Host … found` comment.
+No passphrase: GitHub Actions must use the key unattended, and a passphrase would have
+to be stored as another secret right next to it. The key is contained instead: it
+can only run the forced deploy command (step 3), and can be revoked on its own.
+Never print the private key, paste it anywhere, or put it on the server.
 
-### 3. VPS (as root, one block at a time)
+### 3. VPS (as root over `tayra_vps`, one block at a time)
 
 Nothing here restarts a container.
 
-**Scripts.** From the Mac, in the repo:
+**Scripts.** From the Mac, in the repo (into a root-only staging directory):
 ```bash
-scp -i ~/.ssh/tayra_vps deploy/vps/deploy.sh deploy/vps/backup.sh deploy/vps/health-check.sh root@72.62.189.177:/tmp/
+ssh -i ~/.ssh/tayra_vps root@72.62.189.177 'install -d -o root -g root -m 700 /root/tayra-install'
+scp -i ~/.ssh/tayra_vps deploy/vps/deploy.sh deploy/vps/backup.sh deploy/vps/health-check.sh root@72.62.189.177:/root/tayra-install/
+shasum -a 256 deploy/vps/*.sh                          # compare with the server below
 ```
 On the VPS:
 ```bash
+cd /root/tayra-install && sha256sum deploy.sh backup.sh health-check.sh
 install -d -o root -g root -m 755 /opt/tayra-deploy
-install -o root -g root -m 755 /tmp/deploy.sh /tmp/backup.sh /tmp/health-check.sh /opt/tayra-deploy/
-rm /tmp/deploy.sh /tmp/backup.sh /tmp/health-check.sh
+install -o root -g root -m 755 deploy.sh backup.sh health-check.sh /opt/tayra-deploy/
+cd / && rm -r /root/tayra-install
+install -d -o root -g root -m 700 /opt/postiz-backups /opt/postiz-backups/db /var/log/tayra-deploy /var/lib/tayra-deploy
 ```
+The scripts contain no secrets; 755 root-owned means only root can change them.
 
-**Deploy user.** No password, not in the `docker` group.
+**Deploy user.** Locked password, only its own group (no `docker`, no `sudo`), and a
+root-owned home so it cannot change its own SSH setup:
 ```bash
 adduser --system --group --shell /bin/sh --home /home/tayra-deploy tayra-deploy
+chown root:root /home/tayra-deploy && chmod 755 /home/tayra-deploy
 install -d -o root -g root -m 755 /home/tayra-deploy/.ssh
-# Paste the content of ~/.ssh/tayra_deploy_gha.pub in place of PUBLIC_KEY:
+id tayra-deploy; passwd -S tayra-deploy          # groups=…(tayra-deploy) only; status L (locked)
+```
+`/bin/sh` is required: sshd runs the forced command through the user's shell. It never
+gives an interactive shell, because the key below always runs the forced command.
+
+**Forced-command key.** Replace `PUBLIC_KEY` with the single line of
+`~/.ssh/tayra_social_deploy.pub` (the public key only):
+```bash
 printf '%s\n' 'restrict,command="sudo -n /opt/tayra-deploy/deploy.sh \"$SSH_ORIGINAL_COMMAND\"" PUBLIC_KEY' \
   > /home/tayra-deploy/.ssh/authorized_keys
-chmod 644 /home/tayra-deploy/.ssh/authorized_keys      # root-owned: the user cannot change it
-printf '%s\n' 'tayra-deploy ALL=(root) NOPASSWD: /opt/tayra-deploy/deploy.sh' > /etc/sudoers.d/tayra-deploy
-chmod 440 /etc/sudoers.d/tayra-deploy
-visudo -cf /etc/sudoers.d/tayra-deploy
-sshd -T | grep -iE '^(allowusers|allowgroups|passwordauthentication|pubkeyauthentication)'
+chown root:root /home/tayra-deploy/.ssh/authorized_keys && chmod 644 /home/tayra-deploy/.ssh/authorized_keys
+ssh-keygen -lf /home/tayra-deploy/.ssh/authorized_keys   # same fingerprint as on the Mac
 ```
-If `allowusers` / `allowgroups` is set, add `tayra-deploy` to it in
-`/etc/ssh/sshd_config` and `systemctl reload ssh`.
+`restrict` turns off PTY, port, agent and X11 forwarding for this key, even though the
+server allows them in general.
+
+**sudoers.** Validate a temporary file first: a broken file in `/etc/sudoers.d` can
+break `sudo` for everyone.
+```bash
+tmp=$(mktemp)
+printf '%s\n' 'tayra-deploy ALL=(root) NOPASSWD: /opt/tayra-deploy/deploy.sh' > "$tmp"
+visudo -cf "$tmp" && install -o root -g root -m 440 "$tmp" /etc/sudoers.d/tayra-deploy; rm -f "$tmp"
+visudo -c
+sudo -l -U tayra-deploy                          # exactly: (root) NOPASSWD: /opt/tayra-deploy/deploy.sh
+sshd -T | grep -iE '^(allowusers|allowgroups)'   # empty = nothing to change
+```
+If `allowusers` / `allowgroups` is set, adding `tayra-deploy` to it is an sshd change:
+do it deliberately (`sshd -t` before `systemctl reload ssh`).
 
 **Compose wiring.** Makes Compose read the image from `docker-compose.image.yml`.
-The first version names the image exactly as today, so nothing changes and nothing restarts:
+The first version names the image exactly as today. The hashes of **all** services
+must be identical before and after, which proves nothing will be recreated; the
+block undoes itself otherwise:
 ```bash
 cd /opt/postiz
-before=$(docker compose config --hash postiz)
+before=$(docker compose config --hash '*')
 printf '%s\n' \
   '# Managed by /opt/tayra-deploy/deploy.sh. Do not edit by hand (see deploy/README.md).' \
   'services:' '  postiz:' '    image: ghcr.io/gitroomhq/postiz-app:latest' > docker-compose.image.yml
 chmod 644 docker-compose.image.yml
-install -d -m 700 /opt/postiz-backups
-cp -a .env "/opt/postiz-backups/env-before-tayra-deploy-$(date -u +%Y%m%dT%H%M%SZ)"   # copy, not printed
+envbak="/opt/postiz-backups/env-before-tayra-deploy-$(date -u +%Y%m%dT%H%M%SZ)"
+cp -a .env "$envbak"                              # copy, never printed
 printf '\n# Tayra Social deploy: compose files, in order\nCOMPOSE_FILE=docker-compose.yaml:docker-compose.override.yml:docker-compose.image.yml\n' >> .env
 grep -qxF docker-compose.image.yml .git/info/exclude || echo docker-compose.image.yml >> .git/info/exclude
-after=$(docker compose config --hash postiz)
-[ "$before" = "$after" ] && echo "OK: postiz config unchanged, no restart" || echo "STOP: config changed, undo the .env line"
+after=$(docker compose config --hash '*')
+if [ "$before" = "$after" ]; then echo "OK: all service hashes unchanged, no restart"
+else cp -a "$envbak" .env && rm -f docker-compose.image.yml && echo "STOP: hashes changed, wiring undone"; fi
 docker compose config --format json | python3 -c 'import json,sys; print(json.load(sys.stdin)["services"]["postiz"]["image"])'
 # expected: ghcr.io/gitroomhq/postiz-app:latest
 ```
@@ -275,35 +321,67 @@ deployed image. Do not run Compose with explicit `-f` flags there, which would b
 
 **Dry checks** (read-only for production):
 ```bash
-/opt/tayra-deploy/health-check.sh 120        # should end with HEALTHY
+/opt/tayra-deploy/health-check.sh 300        # ends with HEALTHY (includes the public URL)
 /opt/tayra-deploy/backup.sh setup-test       # creates the first verified dump
 ```
 
-**Key restriction** (from the Mac; both must be refused):
+**Key restriction tests** (from the Mac, `bash`). Every line must be refused; the last
+one proves the real path (sshd → forced command → `sudo -n` → `deploy.sh` preflight)
+and stops at the image pull because that image does not exist:
 ```bash
-ssh -i ~/.ssh/tayra_deploy_gha tayra-deploy@72.62.189.177 'id'   # usage message, exit 64
-ssh -i ~/.ssh/tayra_deploy_gha -t tayra-deploy@72.62.189.177     # no shell, exit 64
+K=(-i ~/.ssh/tayra_social_deploy -o IdentitiesOnly=yes -o BatchMode=yes); H=tayra-deploy@72.62.189.177
+ssh "${K[@]}" $H id < /dev/null;               echo "rc=$? (expect 64, usage message)"
+ssh "${K[@]}" $H 'sudo bash -c id' < /dev/null; echo "rc=$? (expect 64)"
+ssh "${K[@]}" $H '$(touch /tmp/pwned)' < /dev/null; echo "rc=$? (expect 64)"
+ssh "${K[@]}" -tt $H < /dev/null;               echo "rc=$? (expect PTY allocation request failed)"
+sftp "${K[@]}" -b /dev/null $H;                 echo "rc=$? (expect Connection closed)"
+ssh "${K[@]}" $H sha-0000000000000000000000000000000000000000 < /dev/null; echo "rc=$? (expect 1, cannot pull)"
+ssh -i ~/.ssh/tayra_vps root@72.62.189.177 'ls /tmp/pwned 2>&1'   # expect: No such file
 ```
+The `< /dev/null` matters when these lines run inside a script: without it `ssh`
+reads the rest of the script from stdin.
 
 ### 4. GitHub: environment, secrets, variable
 
-Settings → Environments → **New environment** `production`:
-- Deployment branches and tags: **Selected branches**, add `main`.
-- No required reviewers (deploys are automatic after merge).
+**Environment** `production`, deployable from `main` only, no reviewers, no wait timer:
+```bash
+R=nouamanefadil/postiz-app
+printf '%s' '{"wait_timer":0,"reviewers":null,"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true}}' \
+  | gh api -X PUT repos/$R/environments/production --input -
+gh api -X POST repos/$R/environments/production/deployment-branch-policies -f name=main -f type=branch
+```
 
-Environment secrets:
+**Pinned host key.** Take the lines you already trust and check them against the
+server's own keys, read over the authenticated `tayra_vps` session (do not trust a
+fresh `ssh-keyscan`):
+```bash
+ssh-keygen -F 72.62.189.177 -f ~/.ssh/known_hosts | grep -v '^#' > /tmp/kh && ssh-keygen -lf /tmp/kh
+ssh -i ~/.ssh/tayra_vps root@72.62.189.177 'for f in /etc/ssh/ssh_host_*_key.pub; do ssh-keygen -lf "$f"; done'
+# every fingerprint must match before continuing
+```
+
+**Secrets** (values go in through stdin, never as arguments, never printed):
+```bash
+printf '%s' '72.62.189.177' | gh secret set VPS_HOST     --env production -R $R
+printf '%s' 'tayra-deploy'  | gh secret set VPS_USER     --env production -R $R
+printf '%s' '22'            | gh secret set VPS_SSH_PORT --env production -R $R
+gh secret set VPS_SSH_KEY     --env production -R $R < ~/.ssh/tayra_social_deploy
+gh secret set VPS_KNOWN_HOSTS --env production -R $R < /tmp/kh && rm -f /tmp/kh
+gh variable set PRODUCTION_URL --env production -R $R --body 'https://social.maisontayra.com'
+gh secret list --env production -R $R            # names and dates only
+```
 
 | Secret | Value |
 |---|---|
 | `VPS_HOST` | `72.62.189.177` |
 | `VPS_USER` | `tayra-deploy` |
-| `VPS_SSH_PORT` | `22` (or your SSH port) |
-| `VPS_SSH_KEY` | full content of `~/.ssh/tayra_deploy_gha` (private key) |
-| `VPS_KNOWN_HOSTS` | the host key line(s) from step 2 |
-
-Environment variable: `PRODUCTION_URL` = `https://social.maisontayra.com`.
+| `VPS_SSH_PORT` | `22` |
+| `VPS_SSH_KEY` | the private key file `~/.ssh/tayra_social_deploy` |
+| `VPS_KNOWN_HOSTS` | the verified host key lines |
 
 No registry secret: pushing uses the built-in `GITHUB_TOKEN`; the VPS pulls the public image anonymously.
+To rotate the deploy key: generate a new one (step 2), replace the `authorized_keys`
+line (step 3), then `gh secret set VPS_SSH_KEY` again.
 
 ### 5. GitHub: protect `main`
 
@@ -351,15 +429,18 @@ Merge when you can watch the Actions run (about 35 minutes).
 **To an earlier Tayra release:** revert the bad commit with a PR (normal flow), or on the
 VPS as root:
 ```bash
-tail /var/lib/tayra-deploy/history                       # find the commit
-/opt/tayra-deploy/deploy.sh sha-<earlier 40-char commit> # backup, switch, health check, auto-rollback
+tail /var/lib/tayra-deploy/history                # find the commit
+COMMIT=0123456789abcdef0123456789abcdef01234567    # replace: the earlier full 40-char commit
+/opt/tayra-deploy/deploy.sh "sha-$COMMIT"         # backup, switch, health check, auto-rollback
 ```
 
 **To the official Postiz image:** take the digest from the `previous=` field of the first
 line in `/var/lib/tayra-deploy/history`, then:
 ```bash
 cd /opt/postiz
-printf '%s\n' 'services:' '  postiz:' '    image: ghcr.io/gitroomhq/postiz-app@sha256:<digest>' > docker-compose.image.yml
+head -1 /var/lib/tayra-deploy/history             # previous=ghcr.io/gitroomhq/postiz-app@sha256:…
+OFFICIAL='ghcr.io/gitroomhq/postiz-app@sha256:875e61ac5d0ac43c3dec78a78a7032dfb03d9a8c6d4936ebb18adb606cc207c5'  # v2.26.0, check it matches
+printf '%s\n' 'services:' '  postiz:' "    image: $OFFICIAL" > docker-compose.image.yml
 docker compose up -d --no-deps --pull never postiz
 /opt/tayra-deploy/health-check.sh
 ```
@@ -376,8 +457,10 @@ Usually the previous image cannot start against a schema the new image changed.
    cd /opt/postiz
    docker compose stop postiz
    # point docker-compose.image.yml at the image that matches the backup (the previous image)
+   ls -t /opt/postiz-backups/db/                   # pick the dump taken before the failed deploy
+   DUMP=/opt/postiz-backups/db/postiz-20261115T172421Z-setup-test.dump   # replace with that file
    docker exec -i postiz-postgres sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --no-owner' \
-     < /opt/postiz-backups/db/postiz-<time>-before-sha-<commit>.dump
+     < "$DUMP"
    docker compose up -d --no-deps --pull never postiz
    /opt/tayra-deploy/health-check.sh
    ```
