@@ -251,7 +251,11 @@ export const startMcp = async (app: INestApplication) => {
   const createResourceMiddleware = (mcpPath: string, authorizationServer: string) =>
     createOAuthMiddleware({
       oauth: {
-        resource: new URL(mcpPath, process.env.NEXT_PUBLIC_BACKEND_URL!).toString(),
+        // Tayra Social: keep the backend path (e.g. /api) so the advertised resource
+        // matches the URL clients connect to; unchanged when the backend has its own domain
+        resource: new URL(
+          process.env.NEXT_PUBLIC_BACKEND_URL!.replace(/\/$/, '') + mcpPath
+        ).toString(),
         authorizationServers: [authorizationServers[authorizationServer].issuer],
         scopesSupported: oauthScopes,
         validateToken: async (token: string) => {
