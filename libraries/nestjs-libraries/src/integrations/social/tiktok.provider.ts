@@ -39,6 +39,7 @@ export class TiktokProvider extends SocialAbstract implements SocialProvider {
   name = 'Tiktok';
   isBetweenSteps = false;
   convertToJPEG = true;
+  requiredEnv = ['TIKTOK_CLIENT_ID', 'TIKTOK_CLIENT_SECRET'];
   scopes = [
     'video.list',
     'user.info.basic',

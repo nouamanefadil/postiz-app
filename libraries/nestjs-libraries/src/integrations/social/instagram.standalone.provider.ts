@@ -32,6 +32,7 @@ export class InstagramStandaloneProvider
   name = 'Instagram\n(Standalone)';
   isBetweenSteps = false;
   refreshCron = true;
+  requiredEnv = ['INSTAGRAM_APP_ID', 'INSTAGRAM_APP_SECRET'];
   scopes = [
     'instagram_business_basic',
     'instagram_business_content_publish',

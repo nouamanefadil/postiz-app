@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Post,
   Put,
@@ -246,6 +247,27 @@ export class IntegrationsController {
 
     if (integrationProvider.externalUrl && !externalUrl) {
       throw new Error('Missing external url');
+    }
+
+    // Tayra Social: clear configuration error instead of an OAuth URL with an
+    // empty client_id. Reports variable names only, never values.
+    const missing = (integrationProvider.requiredEnv || []).filter(
+      (name) => !process.env[name]?.trim()
+    );
+    if (missing.length) {
+      Logger.warn(
+        `OAuth for "${
+          integrationProvider.identifier
+        }" is not configured: ${missing.join(', ')} empty`
+      );
+      return {
+        err: true,
+        message: `${
+          integrationProvider.name
+        } is not configured on this server yet. The administrator must set ${missing.join(
+          ' and '
+        )}.`,
+      };
     }
 
     try {

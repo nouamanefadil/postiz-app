@@ -37,6 +37,7 @@ export class InstagramProvider
   name = 'Instagram\n(Facebook Business)';
   isBetweenSteps = true;
   toolTip = 'Instagram must be business and connected to a Facebook page';
+  requiredEnv = ['FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET'];
   scopes = [
     'instagram_basic',
     'pages_show_list',
