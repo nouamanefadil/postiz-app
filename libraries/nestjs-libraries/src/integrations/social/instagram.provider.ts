@@ -36,8 +36,31 @@ export class InstagramProvider
   identifier = 'instagram';
   name = 'Instagram\n(Facebook Business)';
   isBetweenSteps = true;
-  toolTip = 'Instagram must be business and connected to a Facebook page';
+  get toolTip() {
+    return this.unifiedConfigId
+      ? 'Instagram professional account (Business or Creator) in a Meta business portfolio, no Facebook Page needed'
+      : 'Instagram must be business and connected to a Facebook page';
+  }
   requiredEnv = ['FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET'];
+  // Tayra Social: when INSTAGRAM_UNIFIED_CONFIG_ID (a Facebook Login for Business
+  // configuration ID) is set, Instagram connects through Meta's Instagram API with
+  // Unified Login: the login dialog takes config_id instead of scope, the code is
+  // exchanged for a Business Integration System User token, and accounts come from
+  // /me/assigned_instagram_accounts (no Facebook Page). Publishing, comments and
+  // insights keep using graph.facebook.com/{instagram-account-id}. Unset = the
+  // Facebook Login flow below, unchanged.
+  // https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-unified-login/get-started
+  private get unifiedConfigId() {
+    return process.env.INSTAGRAM_UNIFIED_CONFIG_ID?.trim() || '';
+  }
+  // Permissions Tayra Social's Instagram features use: profile and account
+  // discovery, publishing, first comment, analytics. Set in the Meta configuration.
+  unifiedScopes = [
+    'instagram_basic',
+    'instagram_content_publish',
+    'instagram_manage_comments',
+    'instagram_manage_insights',
+  ];
   scopes = [
     'instagram_basic',
     'pages_show_list',
@@ -480,6 +503,20 @@ export class InstagramProvider
 
   async generateAuthUrl() {
     const state = makeSecureId(6);
+    if (this.unifiedConfigId) {
+      // Unified Login: the configuration defines the permissions, so no scope
+      return {
+        url:
+          'https://www.facebook.com/dialog/oauth' +
+          `?client_id=${process.env.FACEBOOK_APP_ID}` +
+          `&config_id=${encodeURIComponent(this.unifiedConfigId)}` +
+          `&redirect_uri=${encodeURIComponent(this.unifiedRedirectUri())}` +
+          `&response_type=code` +
+          `&state=${state}`,
+        codeVerifier: makeSecureId(10),
+        state,
+      };
+    }
     return {
       url:
         `https://www.facebook.com/${META_GRAPH_API_VERSION}/dialog/oauth` +
@@ -499,6 +536,9 @@ export class InstagramProvider
     codeVerifier: string;
     refresh: string;
   }) {
+    if (this.unifiedConfigId) {
+      return this.authenticateUnified(params.code);
+    }
     const getAccessToken = await (
       await fetch(
         `https://graph.facebook.com/${META_GRAPH_API_VERSION}/oauth/access_token` +
@@ -551,8 +591,128 @@ export class InstagramProvider
     };
   }
 
+  private unifiedRedirectUri() {
+    return `${process.env.FRONTEND_URL}/integrations/social/instagram`;
+  }
+
+  // Instagram professional accounts the client shared during Unified Login
+  private async assignedInstagramAccounts(accessToken: string) {
+    const accounts: { id: string; username?: string }[] = [];
+    let nextUrl: string | undefined =
+      `https://graph.facebook.com/${META_GRAPH_API_VERSION}/me/assigned_instagram_accounts` +
+      `?fields=id,username&limit=100&access_token=${accessToken}`;
+    while (nextUrl) {
+      const response: any = await (await fetch(nextUrl)).json();
+      if (response.error) {
+        throw new Error(
+          `Could not list the shared Instagram accounts: ${response.error.message}`
+        );
+      }
+      accounts.push(...(response.data || []));
+      nextUrl = response.paging?.next;
+    }
+    return accounts;
+  }
+
+  private async instagramAccountInformation(accessToken: string, id: string) {
+    const information = await (
+      await fetch(
+        `https://graph.facebook.com/${META_GRAPH_API_VERSION}/${encodeURIComponent(
+          id
+        )}?fields=id,username,name,profile_picture_url&access_token=${accessToken}`
+      )
+    ).json();
+    if (information.error || !information.id) {
+      throw new Error(
+        `Could not read the Instagram account: ${
+          information.error?.message || 'unknown error'
+        }`
+      );
+    }
+    return information as {
+      id: string;
+      username?: string;
+      name?: string;
+      profile_picture_url?: string;
+    };
+  }
+
+  private async authenticateUnified(code: string) {
+    const appToken = `${process.env.FACEBOOK_APP_ID}|${process.env.FACEBOOK_APP_SECRET}`;
+
+    // Server-to-server code exchange; returns a Business Integration System User
+    // access token (no fb_exchange_token step for this token type)
+    const token = await (
+      await fetch(
+        `https://graph.facebook.com/${META_GRAPH_API_VERSION}/oauth/access_token` +
+          `?client_id=${process.env.FACEBOOK_APP_ID}` +
+          `&client_secret=${process.env.FACEBOOK_APP_SECRET}` +
+          `&redirect_uri=${encodeURIComponent(this.unifiedRedirectUri())}` +
+          `&code=${encodeURIComponent(code)}`
+      )
+    ).json();
+    if (!token.access_token) {
+      throw new Error(
+        `Meta did not return an access token: ${
+          token.error?.message || 'unknown error'
+        }`
+      );
+    }
+
+    // Granted permissions and expiry of the token (expires_at 0 = no expiry)
+    const { data: debug } = await (
+      await fetch(
+        `https://graph.facebook.com/${META_GRAPH_API_VERSION}/debug_token` +
+          `?input_token=${token.access_token}` +
+          `&access_token=${encodeURIComponent(appToken)}`
+      )
+    ).json();
+    this.checkScopes(this.unifiedScopes, debug?.scopes || []);
+
+    const accounts = await this.assignedInstagramAccounts(token.access_token);
+    if (!accounts.length) {
+      throw new Error(
+        'No Instagram professional account was shared during authorization'
+      );
+    }
+    const first = await this.instagramAccountInformation(
+      token.access_token,
+      accounts[0].id
+    );
+
+    const expiresAt = Number(debug?.expires_at) || 0;
+    return {
+      id: String(debug?.user_id || first.id),
+      name: first.name || first.username || '',
+      accessToken: token.access_token,
+      refreshToken: '',
+      expiresIn:
+        expiresAt > dayjs().unix() ? expiresAt - dayjs().unix() : 999999999,
+      picture: first.profile_picture_url || '',
+      username: first.username || '',
+    };
+  }
+
   @DashboardFunction()
   async pages(token: string) {
+    if (this.unifiedConfigId) {
+      const [unifiedToken] = token.split('___');
+      const accounts = await this.assignedInstagramAccounts(unifiedToken);
+      return Promise.all(
+        accounts.map(async (account) => {
+          const information = await this.instagramAccountInformation(
+            unifiedToken,
+            account.id
+          );
+          return {
+            pageId: '',
+            id: information.id,
+            name: information.name || information.username || account.id,
+            picture: { data: { url: information.profile_picture_url || '' } },
+          };
+        })
+      );
+    }
     const [accessToken, userToken] = token.split('___');
     const seenPageIds = new Set<string>();
     const allFacebookPages: any[] = [];
@@ -640,6 +800,21 @@ export class InstagramProvider
     token: string,
     data: { pageId: string; id: string }
   ) {
+    if (this.unifiedConfigId) {
+      // No Page token: the system-user token works on the Instagram account directly
+      const [unifiedToken] = token.split('___');
+      const information = await this.instagramAccountInformation(
+        unifiedToken,
+        data.id
+      );
+      return {
+        id: information.id,
+        name: information.name || information.username || information.id,
+        picture: information.profile_picture_url || '',
+        access_token: unifiedToken,
+        username: information.username || '',
+      };
+    }
     const [accessToken, userToken] = token.split('___');
     const { access_token, ...all } = await (
       await fetch(
