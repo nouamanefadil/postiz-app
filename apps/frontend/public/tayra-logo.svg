@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="40" viewBox="0 0 220 40" fill="none">
+  <title>Tayra Social</title>
+  <!-- Placeholder logo for documents and emails: replace with the final logo (same name). -->
+  <rect width="40" height="40" rx="9" fill="#213651"/>
+  <rect x="1.5" y="1.5" width="37" height="37" rx="7.5" stroke="#C9A753" stroke-opacity="0.35"/>
+  <path d="M10 10.5H30V15.25H22.6V28.6L20 31.5L17.4 28.6V15.25H10V10.5Z" fill="#C9A753"/>
+  <text x="52" y="27" font-family="'Plus Jakarta Sans', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="700" fill="#213651" letter-spacing="-0.2">Tayra <tspan fill="#C9A753" font-weight="600">Social</tspan></text>
+</svg>

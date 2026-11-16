@@ -7,6 +7,7 @@ import { SesProvider } from '@gitroom/nestjs-libraries/emails/ses.provider';
 import { TemporalService } from 'nestjs-temporal-core';
 import { timer } from '@gitroom/helpers/utils/timer';
 import { randomUUID } from 'crypto';
+import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 
 @Injectable()
 export class EmailService {
@@ -75,6 +76,12 @@ export class EmailService {
       return;
     }
 
+    // Tayra Social: emails are composed in many places (some inside Temporal
+    // workflows, which must not be edited), so the product is renamed once,
+    // here. Only the capitalised name is replaced: URLs stay intact.
+    subject = subject.replace(/Postiz/g, BRAND_NAME);
+    html = html.replace(/Postiz/g, BRAND_NAME);
+
     const settingsUrl = `${process.env.FRONTEND_URL}/settings`;
     // Mail clients show an unsubscribe link next to the sender, it opens the
     // settings where the email notifications can be turned off
@@ -84,7 +91,7 @@ export class EmailService {
 
     const modifiedHtml = `
     <div style="
-        background: linear-gradient(to bottom right, #e6f2ff, #f0e6ff);
+        background: linear-gradient(to bottom right, #f5f6f8, #efe7d4);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -104,7 +111,7 @@ export class EmailService {
                 font-weight: bold;
                 margin-bottom: 1.5rem;
                 text-align: left;
-                color: #1f2937;
+                color: #213651;
             ">${subject}</h1>
             
             <div style="
@@ -117,14 +124,14 @@ export class EmailService {
             <div style="
                 display: flex;
                 align-items: center;
-                border-top: 1px solid #e5e7eb;
+                border-top: 2px solid #c9a753;
                 padding-top: 1.5rem;
             ">
                 <div>
                     <h2 style="
                         font-size: 1.25rem;
                         font-weight: 600;
-                        color: #1f2937;
+                        color: #213651;
                         margin: 0;
                     ">${process.env.EMAIL_FROM_NAME}</h2>
                     <div style="font-size: 12px">

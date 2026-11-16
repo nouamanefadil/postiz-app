@@ -162,6 +162,7 @@ export const useMenuItem = () => {
       path: 'https://affiliate.postiz.com',
       role: ['ADMIN', 'SUPERADMIN', 'USER'],
       requireBilling: true,
+      hide: true, // Tayra Social: upstream's affiliate program, not ours
     },
     {
       name: t('billing', 'Billing'),

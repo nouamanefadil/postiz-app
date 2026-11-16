@@ -3,9 +3,11 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import resourcesToBackend from 'i18next-resources-to-backend';
 import { initReactI18next } from 'react-i18next/initReactI18next';
 import { fallbackLng, languages, defaultNS } from './i18n.config';
+import { brandPostProcessor } from './brand.postprocessor';
 const runsOnServerSide = typeof window === 'undefined';
 
 i18next
+  .use(brandPostProcessor)
   .use(initReactI18next)
   .use(LanguageDetector)
   .use(
@@ -23,6 +25,7 @@ i18next
       order: ['cookie', 'header'],
     },
     preload: runsOnServerSide ? languages : [],
+    postProcess: ['tayraBrand'],
   });
 
 export default i18next;

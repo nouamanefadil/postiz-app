@@ -17,12 +17,13 @@ whoever runs it for users has the obligations below.
 | Keep copyright and license notices | §4, §5 | Done: no upstream notice is removed. Rule for all future work: never delete or alter upstream copyright/license headers or the `LICENSE` file |
 | Mark modifications, with dates | §5(a) | Done for this change set (see "Modification log"); keep it up to date. Git history is the detailed record |
 | License modifications under AGPL | §5(c) | Done: all Tayra changes in this repository are AGPL-3.0 |
-| **Offer the source to network users** | **§13** | **OPEN, blocks the SaaS launch** (see below) |
+| Offer the source to network users | §13 | Done (branch `feature/tayra-branding`): "Source code" link to the deployed commit on every authentication page and in Settings (see below). Keep the repository public |
+| **Own Terms of Service and Privacy Policy** | consumer and data-protection law (not the AGPL) | **OPEN, blocks the commercial launch**: the Postiz links were removed and the registration line is hidden until `TERMS_URL` / `PRIVACY_URL` are set in `libraries/helpers/src/utils/brand.ts` |
 | Corresponding Source includes build/deploy scripts | §1 | Done: `Dockerfile.dev`, `.github/workflows/`, `deploy/` are in the public repo |
 | Third-party licenses reviewed | each dependency | **OPEN**: Polotno needs a commercial license or must stay disabled (see below) |
 | No added restrictions on users | §10 | Rule: Terms of Service must not forbid what the AGPL allows (copying, modifying the source) |
 
-## §13: the network-use obligation (open)
+## §13: the network-use obligation
 
 Anyone who interacts with Tayra Social over the network must be **prominently offered**
 the Corresponding Source of the exact version they are using, at no charge.
@@ -34,10 +35,14 @@ What exists already:
   `sha-<commit>` and is recorded in `/var/lib/tayra-deploy/history`;
 - `NEXT_PUBLIC_VERSION` (`git describe` of the commit) is shown in the app.
 
-What is still needed before launch (a feature PR, not part of this infrastructure):
-- a visible **"Source code"** link in the app (for example the footer and the
-  settings/about page) to `https://github.com/nouamanefadil/postiz-app/tree/<deployed commit>`,
-  with a one-line AGPL notice;
+- a visible notice, "Tayra Social is based on Postiz and licensed under the GNU
+  AGPL-3.0. **Source code**", under the forms of every authentication page and at
+  the bottom of the Settings menu (`components/layout/source.code.notice.tsx`).
+  The link is `https://github.com/nouamanefadil/postiz-app/tree/<deployed commit>`,
+  derived from `NEXT_PUBLIC_VERSION` by `sourceCodeUrl()` in
+  `libraries/helpers/src/utils/brand.ts` (repository root if the version is unknown).
+
+To keep it valid:
 - keep the repository public, or provide the source another way if it ever becomes
   private (a download of the exact deployed commit, offered in the app);
 - keep each deployed commit reachable (do not delete branches or force-push `main`;
@@ -83,3 +88,4 @@ marked with a `Tayra Social:` comment where the file format allows.
 |---|---|---|
 | 2026-11-15 | CI/CD and production deployment infrastructure | `.github/workflows/ci.yml`, `.github/workflows/deploy-production.yml`, `.github/workflows/db-schema-gate.yml`, `deploy/**` (new) |
 | 2026-11-15 | Docker build context: keep `LICENSE` in the image, exclude `.env*`, keys and deploy tooling | `.dockerignore` (modified upstream file, marked) |
+| 2026-11-16 | Tayra Social branding: name, logo, favicon, navy/gold theme (dark and light), truthful auth and onboarding copy (Postiz testimonials, user counts and tutorial video removed), Postiz legal and affiliate links removed, analytics no longer reports to postiz.com, AGPL "Source code" notice | `apps/frontend/**` (theme tokens in `colors.scss`, rule in `global.scss`, ~60 components and pages), `libraries/helpers/src/utils/brand.ts` (new), `libraries/react-shared-libraries/src/translation/*` (product name in all locales via one i18next post-processor), backend user-facing messages and the email template |

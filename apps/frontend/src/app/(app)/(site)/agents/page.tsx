@@ -1,8 +1,9 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 
 export const metadata: Metadata = {
-  title: 'Postiz - Agent',
+  title: `${BRAND_NAME} - Agent`,
   description: '',
 };
 

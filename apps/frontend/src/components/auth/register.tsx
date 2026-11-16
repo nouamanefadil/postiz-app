@@ -25,6 +25,7 @@ import { WalletUiProvider } from '@gitroom/frontend/components/auth/providers/pl
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import useCookie from 'react-use-cookie';
 import { useAttribution } from '@gitroom/frontend/components/auth/attribution.component';
+import { PRIVACY_URL, TERMS_URL } from '@gitroom/helpers/utils/brand';
 const WalletProvider = dynamic(
   () => import('@gitroom/frontend/components/auth/providers/wallet.provider'),
   {
@@ -224,6 +225,7 @@ export function RegisterAfter({
                   placeholder={t('label_company', 'Company')}
                 />
               </div>
+              {!!TERMS_URL && !!PRIVACY_URL && (
               <div className={clsx('text-[12px]')}>
                 {t(
                   'by_registering_you_agree_to_our',
@@ -231,7 +233,7 @@ export function RegisterAfter({
                 )}
                 &nbsp;
                 <a
-                  href={`https://postiz.com/terms`}
+                  href={TERMS_URL}
                   className="underline hover:font-bold"
                   rel="nofollow"
                 >
@@ -240,7 +242,7 @@ export function RegisterAfter({
                 &nbsp;
                 {t('and', 'and')}&nbsp;
                 <a
-                  href={`https://postiz.com/privacy`}
+                  href={PRIVACY_URL}
                   rel="nofollow"
                   className="underline hover:font-bold"
                 >
@@ -248,6 +250,7 @@ export function RegisterAfter({
                 </a>
                 &nbsp;
               </div>
+              )}
               <div className="text-center mt-6">
                 <div className="w-full flex">
                   <Button

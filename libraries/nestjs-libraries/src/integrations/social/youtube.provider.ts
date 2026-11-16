@@ -27,6 +27,7 @@ import { getSsrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/s
 import { setHeartbeatDetails } from '@gitroom/nestjs-libraries/temporal/temporal.heartbeat';
 import { Rules } from '@gitroom/nestjs-libraries/chat/rules.description.decorator';
 import { DashboardFunction } from '@gitroom/nestjs-libraries/integrations/dashboard.function.decorator';
+import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 
 const clientAndYoutube = () => {
   const client = new google.auth.OAuth2({
@@ -282,7 +283,7 @@ export class YoutubeProvider extends SocialAbstract implements SocialProvider {
     }`;
 
     if (text.includes('invalid_rapt')) {
-      return `because your organization's Google Workspace session policy invalidated its access. Ask your Google Workspace admin to mark Postiz as a trusted app and turn on "Exempt trusted apps" (https://support.google.com/a/answer/9368756) to prevent this from happening again`;
+      return `because your organization's Google Workspace session policy invalidated its access. Ask your Google Workspace admin to mark ${BRAND_NAME} as a trusted app and turn on "Exempt trusted apps" (https://support.google.com/a/answer/9368756) to prevent this from happening again`;
     }
 
     return undefined;

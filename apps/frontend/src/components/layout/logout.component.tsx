@@ -1,5 +1,6 @@
 'use client';
 
+import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 import React, { FC, useCallback } from 'react';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
@@ -44,7 +45,7 @@ export const LogoutComponent: FC<{ isIcon?: boolean }> = ({ isIcon }) => {
             data-tooltip-id="tooltip"
             data-tooltip-content={`
             ${t('logout_from', 'Logout from')}${' '}
-            ${isGeneral ? ' Postiz' : ' Gitroom'}
+             ${BRAND_NAME}
             `}
           >
             <path
@@ -55,7 +56,7 @@ export const LogoutComponent: FC<{ isIcon?: boolean }> = ({ isIcon }) => {
         ) : (
           <span className="text-red-400">
             {t('logout_from', 'Logout from')}
-            {isGeneral ? ' Postiz' : ' Gitroom'}
+            {' ' + BRAND_NAME}
           </span>
         )}
       </div>

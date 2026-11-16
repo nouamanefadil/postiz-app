@@ -42,7 +42,7 @@ export const OnboardingModal: FC<OnboardingModalProps> = ({ onClose }) => {
     () => [
       t('connect_channels', 'Connect Channels'),
       t('connect_agents', 'Connect Agents'),
-      t('watch_tutorial', 'Watch Tutorial'),
+      t('tayra_onboarding_step_ready', 'Get Started'),
     ],
     [t]
   );
@@ -244,7 +244,7 @@ const OnboardingStep1: FC<{ onNext: () => void; onSkip: () => void }> = ({
       <div className="flex justify-end pt-[24px] mt-[8px]">
         <button
           onClick={onNext}
-          className="group flex items-center gap-[12px] bg-gradient-to-r from-[#622aff] to-[#8b5cf6] hover:from-[#7c3aff] hover:to-[#9d6eff] text-white font-semibold px-[32px] py-[14px] rounded-[12px] text-[16px] transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
+          className="group flex items-center gap-[12px] bg-btnPrimary hover:bg-seventh font-semibold px-[32px] py-[14px] rounded-[12px] text-[16px] transition-all shadow-lg shadow-black/20"
         >
           {sortedIntegrations.length > 0
             ? t('continue', 'Continue')
@@ -408,7 +408,7 @@ const OnboardingStep2: FC<{ onBack: () => void; onNext: () => void }> = ({
           </div>
         </div>
         <a
-          className="cursor-pointer px-[24px] h-[44px] bg-[#612BD3] hover:bg-[#5520CB] text-white transition-colors rounded-[8px] text-[14px] font-[600] flex items-center gap-[8px] shrink-0"
+          className="cursor-pointer px-[24px] h-[44px] bg-btnPrimary hover:bg-seventh text-white transition-colors rounded-[8px] text-[14px] font-[600] flex items-center gap-[8px] shrink-0"
           href="https://docs.postiz.com/public-api/introduction"
           target="_blank"
         >
@@ -467,7 +467,7 @@ const OnboardingStep2: FC<{ onBack: () => void; onNext: () => void }> = ({
         </div>
       </div>
       <a
-        className="cursor-pointer px-[24px] h-[44px] bg-[#612BD3] hover:bg-[#5520CB] text-white transition-colors rounded-[8px] text-[14px] font-[600] flex items-center gap-[8px] shrink-0"
+        className="cursor-pointer px-[24px] h-[44px] bg-btnPrimary hover:bg-seventh text-white transition-colors rounded-[8px] text-[14px] font-[600] flex items-center gap-[8px] shrink-0"
         href={connector.href}
         target="_blank"
       >
@@ -501,7 +501,7 @@ const OnboardingStep2: FC<{ onBack: () => void; onNext: () => void }> = ({
                 className={clsx(
                   'cursor-pointer px-[14px] h-[36px] text-[13px] font-[500] rounded-[8px] transition-colors',
                   auth === m
-                    ? 'bg-[#612BD3] text-white'
+                    ? 'bg-btnPrimary text-white'
                     : 'bg-btnSimple text-customColor18 hover:bg-boxHover hover:text-textColor'
                 )}
                 onClick={() => setAuth(m)}
@@ -591,9 +591,9 @@ const OnboardingStep2: FC<{ onBack: () => void; onNext: () => void }> = ({
                 className={clsx(
                   'cursor-pointer px-[14px] h-[36px] text-[13px] font-[500] rounded-[8px] transition-colors flex items-center gap-[8px]',
                   tab === item
-                    ? 'bg-[#612BD3] text-white'
+                    ? 'bg-btnPrimary text-white'
                     : item === apiTab
-                    ? 'bg-btnSimple text-[#a78bfa] hover:bg-boxHover hover:text-[#c4b5fd]'
+                    ? 'bg-btnSimple text-[var(--new-accent-text)] hover:bg-boxHover hover:text-textColor'
                     : 'bg-btnSimple text-customColor18 hover:bg-boxHover hover:text-textColor'
                 )}
                 onClick={() => setTab(item)}
@@ -612,7 +612,7 @@ const OnboardingStep2: FC<{ onBack: () => void; onNext: () => void }> = ({
                   className={clsx(
                     'cursor-pointer px-[12px] h-[32px] text-[12px] font-[500] rounded-[8px] transition-colors flex items-center gap-[6px]',
                     otherAgent === item
-                      ? 'bg-[#612BD3] text-white'
+                      ? 'bg-btnPrimary text-white'
                       : 'bg-btnSimple text-customColor18 hover:bg-boxHover hover:text-textColor'
                   )}
                   onClick={() => setOtherAgent(item)}
@@ -681,7 +681,7 @@ const OnboardingStep2: FC<{ onBack: () => void; onNext: () => void }> = ({
         </div>
         <button
           onClick={onNext}
-          className="group flex items-center gap-[12px] bg-gradient-to-r from-[#622aff] to-[#8b5cf6] hover:from-[#7c3aff] hover:to-[#9d6eff] text-white font-semibold px-[32px] py-[14px] rounded-[12px] text-[16px] transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
+          className="group flex items-center gap-[12px] bg-btnPrimary hover:bg-seventh font-semibold px-[32px] py-[14px] rounded-[12px] text-[16px] transition-all shadow-lg shadow-black/20"
         >
           {t('continue_skip', 'Continue / Skip')}
           <svg
@@ -713,29 +713,63 @@ const OnboardingStep3: FC<{ onBack: () => void; onFinish: () => void }> = ({
 
   return (
     <div className="flex flex-col gap-[24px] flex-1">
+      {/* Tayra Social: replaces the upstream Postiz tutorial video */}
       <div className="flex gap-[4px] flex-col text-center">
         <div className="text-[24px] font-semibold">
-          {t('watch_tutorial_title', 'Learn How to Use Postiz')}
+          {t('tayra_onboarding_ready_title', 'You are ready to go')}
         </div>
         <div className="text-[14px] text-customColor18">
           {t(
-            'watch_tutorial_description',
-            'Watch this short video to learn how to get the most out of Postiz'
+            'tayra_onboarding_ready_description',
+            'Here is where to find the essentials in Tayra Social.'
           )}
         </div>
       </div>
 
-      {/* YouTube Video Embed */}
-      <div className="relative flex-1 rounded-[12px] overflow-hidden">
-        <div className="absolute left-0 top-0 w-full h-full flex justify-center">
-          <iframe
-            className="h-full aspect-video"
-            src="https://www.youtube.com/embed/BdsCVvEYgHU?si=vvhaZJ8I5oXXvVJS?autoplay=1"
-            title="Postiz Tutorial"
-            allow="autoplay"
-            allowFullScreen
-          />
-        </div>
+      <div className="grid grid-cols-2 mobile:grid-cols-1 gap-[12px] flex-1 content-start">
+        {[
+          {
+            title: t('tayra_onboarding_calendar_title', 'Create your first post'),
+            text: t(
+              'tayra_onboarding_calendar_text',
+              'Open the Calendar, choose your channels and schedule or publish a post.'
+            ),
+          },
+          {
+            title: t('tayra_onboarding_preview_title', 'Preview before publishing'),
+            text: t(
+              'tayra_onboarding_preview_text',
+              'The post editor shows how your post will look on each platform.'
+            ),
+          },
+          {
+            title: t('tayra_onboarding_analytics_title', 'Follow your results'),
+            text: t(
+              'tayra_onboarding_analytics_text',
+              'Analytics shows the performance of your connected channels.'
+            ),
+          },
+          {
+            title: t('tayra_onboarding_team_title', 'Invite your team'),
+            text: t(
+              'tayra_onboarding_team_text',
+              'Add teammates from Settings to work together in the same workspace.'
+            ),
+          },
+        ].map((item) => (
+          <div
+            key={item.title}
+            className="flex flex-col gap-[6px] rounded-[12px] border border-newTableBorder bg-newBgColor p-[16px]"
+          >
+            <div className="flex items-center gap-[8px] text-[15px] font-[600]">
+              <span className="h-[8px] w-[8px] rounded-full bg-[#C9A753]" />
+              {item.title}
+            </div>
+            <div className="text-[13px] leading-[1.5] text-customColor18">
+              {item.text}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Action buttons */}
@@ -763,7 +797,7 @@ const OnboardingStep3: FC<{ onBack: () => void; onFinish: () => void }> = ({
         </button>
         <button
           onClick={onFinish}
-          className="group flex items-center gap-[12px] bg-gradient-to-r from-[#10b981] to-[#059669] hover:from-[#34d399] hover:to-[#10b981] text-white font-semibold px-[32px] py-[14px] rounded-[12px] text-[16px] transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
+          className="group flex items-center gap-[12px] bg-btnPrimary hover:bg-seventh font-semibold px-[32px] py-[14px] rounded-[12px] text-[16px] transition-all shadow-lg shadow-black/20"
         >
           {t('get_started', 'Get Started')}
           <svg

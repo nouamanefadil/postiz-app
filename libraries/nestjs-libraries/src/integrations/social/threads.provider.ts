@@ -20,6 +20,7 @@ import { stripHtmlValidation } from '@gitroom/helpers/utils/strip.html.validatio
 import { hasExtension } from '@gitroom/helpers/utils/has.extension';
 import { ThreadsDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/threads.dto';
 import { Rules } from '@gitroom/nestjs-libraries/chat/rules.description.decorator';
+import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 
 @Rules(
   'If the content of the post (text, pictures or video) was made with AI, ask the user if they want to mark it as AI, and set made_with_ai to true only when they say yes.'
@@ -81,7 +82,7 @@ export class ThreadsProvider extends SocialAbstract implements SocialProvider {
       return {
         type: 'bad-body',
         value:
-          "One of the media URLs is invalid or inaccessible, make sure it's being uploaded to Postiz first",
+          `One of the media URLs is invalid or inaccessible, make sure it's being uploaded to ${BRAND_NAME} first`,
       };
     }
     if (body.includes('4279009')) {
