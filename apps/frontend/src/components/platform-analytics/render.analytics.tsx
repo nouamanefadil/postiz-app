@@ -196,6 +196,7 @@ export const RenderAnalytics: FC<{
     revalidateOnMount: true,
   });
 
+  const t = useT();
   const refreshChannel = useCallback(
     (
         integrationData: Integration & {
@@ -227,8 +228,6 @@ export const RenderAnalytics: FC<{
       },
     []
   );
-
-  const t = useT();
 
   const totals = useMemo(() => {
     return data?.map((p: AnalyticsDataItem) => {
