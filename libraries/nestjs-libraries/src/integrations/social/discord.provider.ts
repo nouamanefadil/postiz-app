@@ -10,6 +10,7 @@ import { Integration } from '@prisma/client';
 import { DiscordDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/discord.dto';
 import { Tool } from '@gitroom/nestjs-libraries/integrations/tool.decorator';
 import FormDataUpload from 'form-data';
+import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 
 export class DiscordProvider extends SocialAbstract implements SocialProvider {
   override maxConcurrentJob = 5; // Discord has generous rate limits for webhook posting
@@ -396,7 +397,7 @@ export class DiscordProvider extends SocialAbstract implements SocialProvider {
     if (body.includes('401: Unauthorized')) {
       return {
         type: 'bad-body',
-        value: 'Discord rejected the Postiz bot token, reconnecting will not help',
+        value: `Discord rejected the ${BRAND_NAME} bot token, reconnecting will not help`,
       };
     }
 

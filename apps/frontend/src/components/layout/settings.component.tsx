@@ -34,6 +34,7 @@ import { GlobalSettings } from '@gitroom/frontend/components/settings/global.set
 import { AppsComponent } from '@gitroom/frontend/components/settings/apps.component';
 import { ThirdPartyComponent } from '@gitroom/frontend/components/third-parties/third-party.component';
 import { Plugs } from '@gitroom/frontend/components/plugs/plugs';
+import { SourceCodeNotice } from '@gitroom/frontend/components/layout/source.code.notice';
 export const SettingsPopup: FC<{
   getRef?: Ref<any>;
 }> = (props) => {
@@ -155,6 +156,7 @@ export const SettingsPopup: FC<{
               <LogoutComponent />
             </div>
           )}
+          <SourceCodeNotice className="mt-[16px] mobile:mt-[8px]" />
         </div>
       </div>
       <div className="bg-newBgColorInner flex-1 min-w-0 flex-col flex p-[20px] mobile:p-[12px] gap-[12px]">

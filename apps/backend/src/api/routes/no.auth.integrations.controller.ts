@@ -28,6 +28,7 @@ import { OrganizationService } from '@gitroom/nestjs-libraries/database/prisma/o
 import { getSsrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
 import { ThrottlerRealIpGuard } from '@gitroom/nestjs-libraries/throttler/throttler.provider';
 import { PermissionsService } from '@gitroom/backend/services/auth/permissions/permissions.service';
+import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 
 @ApiTags('Integrations')
 @Controller('/integrations')
@@ -402,7 +403,7 @@ export class NoAuthIntegrationsController {
     );
     if (!ability.can(AuthorizationActions.Create, Sections.CHANNEL)) {
       throw new HttpException(
-        'This Postiz workspace reached the channel limit of its plan, it has to be upgraded before another channel can be added',
+        `This ${BRAND_NAME} workspace reached the channel limit of its plan, it has to be upgraded before another channel can be added`,
         400
       );
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import React, { FC, useCallback, useMemo } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
@@ -452,7 +453,7 @@ const ChromeExtensionWarning: FC<{
           We will store your cookies securely to facilitate the connection.
         </li>
         <li>
-          Postiz does not take responsibility for any issues arising or account
+          {BRAND_NAME} does not take responsibility for any issues arising or account
           termination due to the use of this method.
         </li>
       </ul>
