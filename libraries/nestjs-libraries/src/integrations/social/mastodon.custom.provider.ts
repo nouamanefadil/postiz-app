@@ -13,6 +13,8 @@ import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 export class MastodonCustomProvider extends MastodonProvider {
   override identifier = 'mastodon-custom';
   override name = 'M. Instance';
+  // Tayra Social: credentials come from the instance the user enters
+  override requiredEnv: string[] = [];
   override maxConcurrentJob = 5; // Custom Mastodon instances typically have generous limits
   editor = 'normal' as const;
 

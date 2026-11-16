@@ -25,6 +25,7 @@ export class SlackProvider extends SocialAbstract implements SocialProvider {
   // groups:read is left out on purpose: everyone in the Postiz organization
   // sees the same channel picker, and Slack's privacy model forbids showing
   // private channel names to people who aren't members of them.
+  requiredEnv = ['SLACK_ID', 'SLACK_SECRET'];
   scopes = [
     'channels:read',
     'chat:write',

@@ -22,6 +22,7 @@ export class DribbbleProvider extends SocialAbstract implements SocialProvider {
   identifier = 'dribbble';
   name = 'Dribbble';
   isBetweenSteps = false;
+  requiredEnv = ['DRIBBBLE_CLIENT_ID', 'DRIBBBLE_CLIENT_SECRET'];
   scopes = ['public', 'upload'];
   editor = 'normal' as const;
   maxLength() {

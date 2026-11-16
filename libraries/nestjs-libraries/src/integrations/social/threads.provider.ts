@@ -29,6 +29,7 @@ export class ThreadsProvider extends SocialAbstract implements SocialProvider {
   identifier = 'threads';
   name = 'Threads';
   isBetweenSteps = false;
+  requiredEnv = ['THREADS_APP_ID', 'THREADS_APP_SECRET'];
   scopes = [
     'threads_basic',
     'threads_content_publish',

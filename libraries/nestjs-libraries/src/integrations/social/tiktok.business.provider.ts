@@ -38,9 +38,10 @@ export class TiktokBusinessProvider
   implements SocialProvider
 {
   identifier = 'tiktok-business';
-  name = 'TikTok';
+  name = 'TikTok Business';
   isBetweenSteps = false;
   convertToJPEG = true;
+  requiredEnv = ['TIKTOK_BUSINESS_CLIENT_ID', 'TIKTOK_BUSINESS_CLIENT_SECRET'];
   scopes = [
     'user.info.basic',
     'user.info.username',

@@ -58,6 +58,7 @@ export class RedditProvider extends SocialAbstract implements SocialProvider {
   identifier = 'reddit';
   name = 'Reddit';
   isBetweenSteps = false;
+  requiredEnv = ['REDDIT_CLIENT_ID', 'REDDIT_CLIENT_SECRET'];
   scopes = ['read', 'identity', 'submit', 'flair'];
   editor = 'normal' as const;
   dto = RedditSettingsDto;

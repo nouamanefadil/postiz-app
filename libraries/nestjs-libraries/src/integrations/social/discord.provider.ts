@@ -18,6 +18,7 @@ export class DiscordProvider extends SocialAbstract implements SocialProvider {
   name = 'Discord';
   isBetweenSteps = false;
   editor = 'markdown' as const;
+  requiredEnv = ['DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET'];
   scopes = ['identify', 'guilds'];
   maxLength() {
     return 1980;

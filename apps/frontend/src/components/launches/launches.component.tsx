@@ -597,7 +597,7 @@ export const LaunchesComponent = () => {
           return;
         }
 
-        const { url } = await (
+        const { url, err, message } = await (
           await fetch(
             `/integrations/social/${integration.identifier}?refresh=${integration.internalId}`,
             {
@@ -605,6 +605,18 @@ export const LaunchesComponent = () => {
             }
           )
         ).json();
+        if (err) {
+          // Tayra Social: e.g. provider credentials not configured on the server
+          toast.show(
+            message ||
+              t(
+                'could_not_connect_to_platform',
+                'Could not connect to the platform'
+              ),
+            'warning'
+          );
+          return;
+        }
         window.location.href = url;
       },
     []

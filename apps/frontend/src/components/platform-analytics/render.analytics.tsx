@@ -5,6 +5,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { ChartSocial } from '@gitroom/frontend/components/analytics/chart-social';
 import { LoadingComponent } from '@gitroom/frontend/components/layout/loading';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import { useToaster } from '@gitroom/react/toaster/toaster';
 
 interface AnalyticsDataItem {
   label: string;
@@ -184,6 +185,7 @@ export const RenderAnalytics: FC<{
     return load;
   }, [integration, date]);
 
+  const toaster = useToaster();
   const { data } = useSWR(`/analytics-${integration?.id}-${date}`, load, {
     refreshInterval: 0,
     refreshWhenHidden: false,
@@ -194,6 +196,7 @@ export const RenderAnalytics: FC<{
     revalidateOnMount: true,
   });
 
+  const t = useT();
   const refreshChannel = useCallback(
     (
         integrationData: Integration & {
@@ -201,7 +204,7 @@ export const RenderAnalytics: FC<{
         }
       ) =>
       async () => {
-        const { url } = await (
+        const { url, err, message } = await (
           await fetch(
             `/integrations/social/${integrationData.identifier}?refresh=${integrationData.internalId}`,
             {
@@ -209,12 +212,22 @@ export const RenderAnalytics: FC<{
             }
           )
         ).json();
+        if (err) {
+          // Tayra Social: e.g. provider credentials not configured on the server
+          toaster.show(
+            message ||
+              t(
+                'could_not_connect_to_platform',
+                'Could not connect to the platform'
+              ),
+            'warning'
+          );
+          return;
+        }
         window.location.href = url;
       },
     []
   );
-
-  const t = useT();
 
   const totals = useMemo(() => {
     return data?.map((p: AnalyticsDataItem) => {
