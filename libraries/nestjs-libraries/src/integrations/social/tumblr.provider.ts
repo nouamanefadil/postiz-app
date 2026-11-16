@@ -88,6 +88,7 @@ export class TumblrProvider extends SocialAbstract implements SocialProvider {
   identifier = 'tumblr';
   name = 'Tumblr';
   isBetweenSteps = true;
+  requiredEnv = ['TUMBLR_CLIENT_ID', 'TUMBLR_CLIENT_SECRET'];
   scopes = ['write', 'offline_access'];
   editor = 'normal' as const;
   dto = TumblrDto;

@@ -22,6 +22,7 @@ export class VkProvider extends SocialAbstract implements SocialProvider {
   identifier = 'vk';
   name = 'VK';
   isBetweenSteps = false;
+  requiredEnv = ['VK_ID'];
   scopes = [
     'vkid.personal_info',
     'email',

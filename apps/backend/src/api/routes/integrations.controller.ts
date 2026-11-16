@@ -251,9 +251,12 @@ export class IntegrationsController {
 
     // Tayra Social: clear configuration error instead of an OAuth URL with an
     // empty client_id. Reports variable names only, never values.
-    const missing = (integrationProvider.requiredEnv || []).filter(
-      (name) => !process.env[name]?.trim()
-    );
+    const missing = (integrationProvider.requiredEnv || [])
+      .filter((names) => !names.split('|').some((n) => process.env[n]?.trim()))
+      .map((names) => {
+        const [name, ...fallbacks] = names.split('|');
+        return fallbacks.length ? `${name} (or ${fallbacks.join(', ')})` : name;
+      });
     if (missing.length) {
       Logger.warn(
         `OAuth for "${

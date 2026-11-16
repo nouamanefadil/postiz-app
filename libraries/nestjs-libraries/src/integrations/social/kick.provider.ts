@@ -18,6 +18,7 @@ export class KickProvider extends SocialAbstract implements SocialProvider {
   name = 'Kick';
   isBetweenSteps = false;
   editor = 'normal' as const;
+  requiredEnv = ['KICK_CLIENT_ID', 'KICK_SECRET'];
   scopes = ['chat:write', 'user:read', 'channel:read'];
   dto = KickDto;
 

@@ -44,6 +44,7 @@ export class GmbProvider extends SocialAbstract implements SocialProvider {
   identifier = 'gmb';
   name = 'Google My Business';
   isBetweenSteps = true;
+  requiredEnv = ['GOOGLE_GMB_CLIENT_ID|YOUTUBE_CLIENT_ID', 'GOOGLE_GMB_CLIENT_SECRET|YOUTUBE_CLIENT_SECRET'];
   scopes = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/userinfo.email',

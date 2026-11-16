@@ -36,6 +36,7 @@ export class MastodonProvider extends SocialAbstract implements SocialProvider {
   identifier = 'mastodon';
   name = 'Mastodon';
   isBetweenSteps = false;
+  requiredEnv = ['MASTODON_CLIENT_ID', 'MASTODON_CLIENT_SECRET'];
   scopes = ['write:statuses', 'profile', 'write:media'];
   editor = 'normal' as const;
   maxLength() {

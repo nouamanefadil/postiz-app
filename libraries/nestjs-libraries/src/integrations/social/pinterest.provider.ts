@@ -54,6 +54,7 @@ export class PinterestProvider
   identifier = 'pinterest';
   name = 'Pinterest';
   isBetweenSteps = false;
+  requiredEnv = ['PINTEREST_CLIENT_ID', 'PINTEREST_CLIENT_SECRET'];
   scopes = [
     'boards:read',
     'boards:write',

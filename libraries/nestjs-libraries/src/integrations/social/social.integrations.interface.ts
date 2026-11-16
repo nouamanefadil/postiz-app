@@ -237,6 +237,7 @@ export interface SocialProvider
   // Tayra Social: environment variables the OAuth flow needs. The connect
   // endpoint refuses with a clear message when one is empty, instead of
   // sending the user to the platform with an empty client_id.
+  // "A|B" means either variable is enough (a fallback the provider supports).
   requiredEnv?: string[];
   externalUrl?: (
     url: string

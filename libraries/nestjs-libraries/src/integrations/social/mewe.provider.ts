@@ -17,6 +17,7 @@ export class MeweProvider extends SocialAbstract implements SocialProvider {
   identifier = 'mewe';
   name = 'MeWe';
   isBetweenSteps = false;
+  requiredEnv = ['MEWE_APP_ID', 'MEWE_API_KEY'];
   scopes = [] as string[];
   editor = 'normal' as const;
   dto = MeweDto;

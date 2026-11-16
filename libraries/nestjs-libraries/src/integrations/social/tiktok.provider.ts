@@ -36,7 +36,7 @@ import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
 )
 export class TiktokProvider extends SocialAbstract implements SocialProvider {
   identifier = 'tiktok';
-  name = 'Tiktok';
+  name = 'TikTok';
   isBetweenSteps = false;
   convertToJPEG = true;
   requiredEnv = ['TIKTOK_CLIENT_ID', 'TIKTOK_CLIENT_SECRET'];

@@ -17,6 +17,7 @@ export class TwitchProvider extends SocialAbstract implements SocialProvider {
   name = 'Twitch';
   isBetweenSteps = false;
   editor = 'normal' as const;
+  requiredEnv = ['TWITCH_CLIENT_ID', 'TWITCH_CLIENT_SECRET'];
   scopes = ['user:write:chat', 'user:read:chat', 'moderator:manage:announcements'];
   dto = TwitchDto;
 
