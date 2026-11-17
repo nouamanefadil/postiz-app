@@ -1,0 +1,88 @@
+# Production overrides for /opt/postiz. Compose merges this file into docker-compose.yaml
+# automatically, so the official file stays untouched and `git pull` keeps working.
+# Secrets come from ./.env (chmod 600). Nothing in this file is secret.
+# Reference copy of /opt/postiz/docker-compose.override.yml. deploy.sh does not install it:
+# apply changes by hand, see deploy/README.md "Updating the production compose override".
+
+services:
+  postiz:
+    ports: !reset []            # no public port; NPM reaches postiz:5000 over npm_default
+    environment:
+      MAIN_URL: 'https://social.maisontayra.com'
+      FRONTEND_URL: 'https://social.maisontayra.com'
+      NEXT_PUBLIC_BACKEND_URL: 'https://social.maisontayra.com/api'
+      JWT_SECRET: '${POSTIZ_JWT_SECRET:?POSTIZ_JWT_SECRET missing from .env}'
+      DATABASE_URL: 'postgresql://postiz-user:${POSTIZ_DB_PASSWORD:?POSTIZ_DB_PASSWORD missing from .env}@postiz-postgres:5432/postiz-db-local'
+      # 'true' still allows the very first signup (0 organizations), then closes registration.
+      DISABLE_REGISTRATION: 'true'
+      # Integrations: fill these in .env when you have credentials, then re-run `docker compose up -d postiz`.
+      FACEBOOK_APP_ID: '${FACEBOOK_APP_ID:-}'          # Facebook pages + Instagram (business, via Facebook)
+      FACEBOOK_APP_SECRET: '${FACEBOOK_APP_SECRET:-}'
+      INSTAGRAM_UNIFIED_CONFIG_ID: '${INSTAGRAM_UNIFIED_CONFIG_ID:-}'  # Instagram (Facebook Business) via Meta Unified Login; empty = Facebook Login
+      INSTAGRAM_APP_ID: '${INSTAGRAM_APP_ID:-}'        # Instagram standalone login
+      INSTAGRAM_APP_SECRET: '${INSTAGRAM_APP_SECRET:-}'
+      TIKTOK_CLIENT_ID: '${TIKTOK_CLIENT_ID:-}'
+      TIKTOK_CLIENT_SECRET: '${TIKTOK_CLIENT_SECRET:-}'
+    networks:
+      - postiz-network
+      - temporal-network
+      - npm_default
+    depends_on:
+      temporal:
+        condition: service_started
+    healthcheck:
+      # image has no curl/wget; node 22 has fetch. Any non-5xx from the API means nginx + backend are up.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/api/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+
+  postiz-postgres:
+    environment:
+      POSTGRES_PASSWORD: '${POSTIZ_DB_PASSWORD:?POSTIZ_DB_PASSWORD missing from .env}'
+
+  spotlight:
+    profiles: ['debug']         # Sentry dev tool; was publishing 8969 publicly. Off unless --profile debug.
+    ports: !reset []
+
+  temporal-elasticsearch:
+    restart: always
+    environment:
+      ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+    volumes:
+      # upstream mounts /var/lib/elasticsearch/data, which ES 7 does not use; this is the real data dir
+      - temporal-es-data:/usr/share/elasticsearch/data
+
+  temporal-postgresql:
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: '${TEMPORAL_DB_PASSWORD:?TEMPORAL_DB_PASSWORD missing from .env}'
+    volumes:
+      - temporal-postgres-data:/var/lib/postgresql/data   # replaces the anonymous volume
+    healthcheck:
+      test: pg_isready -U temporal
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  temporal:
+    restart: always
+    ports: !reset []            # 7233 was public with no auth
+    environment:
+      POSTGRES_PWD: '${TEMPORAL_DB_PASSWORD:?TEMPORAL_DB_PASSWORD missing from .env}'
+    depends_on:
+      temporal-postgresql:
+        condition: service_healthy
+
+  temporal-ui:
+    restart: always
+    ports: !reset []            # 8080 was public with no auth
+
+volumes:
+  temporal-postgres-data:
+  temporal-es-data:
+
+networks:
+  npm_default:
+    external: true
