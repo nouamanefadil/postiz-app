@@ -31,6 +31,7 @@ There is no staging environment. Test locally before opening the PR.
 | `deploy/vps/deploy.sh` | The only command the deploy SSH key can run. Backup, switch, verify, roll back |
 | `deploy/vps/backup.sh` | `pg_dump` of the Postiz database, verified, newest 7 kept |
 | `deploy/vps/health-check.sh` | Container, pm2, API, database, frontend, soak and public URL checks |
+| `deploy/vps/docker-compose.override.yml` | Reference copy of `/opt/postiz/docker-compose.override.yml` (production URLs, which `.env` variables reach the container). Not installed by deploys |
 | `.dockerignore` | Keeps `.env*`, keys and deploy tooling out of the image; keeps `LICENSE` in |
 
 Upstream files (`Dockerfile.dev`, `docker-compose.yaml`, upstream workflows) are not
@@ -505,6 +506,26 @@ ssh -i ~/.ssh/tayra_vps root@72.62.189.177 'cd /opt/tayra-deploy && sha256sum de
 # every hash must match; mode must be 755 root:root
 ```
 A mismatch means the server would run different deploy logic than the code reviewed in the PR.
+
+## Updating the production compose override
+
+The `postiz` service only receives the variables listed in
+`/opt/postiz/docker-compose.override.yml` (no `env_file`), so a new variable needs a
+line there as well as a value in `.env`. Deploys never touch this file. After the PR
+that changes `deploy/vps/docker-compose.override.yml` is merged, as root on the VPS:
+```bash
+cd /opt/postiz
+cp -a docker-compose.override.yml "/opt/postiz-backups/override-$(date -u +%Y%m%dT%H%M%SZ).yml"
+curl -fsSL https://raw.githubusercontent.com/nouamanefadil/postiz-app/main/deploy/vps/docker-compose.override.yml -o /tmp/override.new
+diff docker-compose.override.yml /tmp/override.new      # must show only the reviewed lines
+install -m 644 /tmp/override.new docker-compose.override.yml && rm /tmp/override.new
+docker compose config --quiet && echo "compose OK"
+# Fill the new variable in .env (never print it), then recreate only postiz:
+docker compose up -d --no-deps postiz
+/opt/tayra-deploy/health-check.sh 300
+```
+Rollback: copy the backup back over `docker-compose.override.yml`, then
+`docker compose up -d --no-deps postiz`.
 
 ## Troubleshooting
 
