@@ -5,7 +5,8 @@
 # - ESLint on changed frontend files: ADVISORY. The repo-root ESLint config crashes
 #   while loading (upstream issue) and upstream code already has errors under the
 #   frontend config, so lint cannot gate merges without failing every upstream sync.
-# - no test step: the repo has no test files and `pnpm test` needs the missing @nx/jest.
+# - Tayra regression tests (apps/backend/test/*.test.ts): plain node:assert scripts run
+#   through the installed @swc-node/register (`pnpm test` needs the missing @nx/jest).
 # - Docker build on PRs (it runs the real `pnpm run build`, so it is also the app
 #   build check); on main the deploy workflow builds the image instead.
 name: CI
@@ -55,6 +56,16 @@ jobs:
         run: pnpm exec tsc --noEmit -p apps/orchestrator/tsconfig.build.json
       - name: Type check frontend
         run: pnpm exec tsc --noEmit -p apps/frontend/tsconfig.json
+
+      # No REDIS_URL: the tests run on the in-memory Redis mock. Dummy credentials only.
+      - name: Regression tests
+        env:
+          SWC_NODE_PROJECT: apps/backend/test/tsconfig.json
+        run: |
+          for t in apps/backend/test/*.test.ts; do
+            echo "== $t"
+            node -r @swc-node/register "$t"
+          done
 
       - name: ESLint changed frontend files (advisory)
         if: github.event_name == 'pull_request'

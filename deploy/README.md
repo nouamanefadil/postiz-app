@@ -48,6 +48,7 @@ Runs on every pull request into `main` and every push to `main`.
 | Type check worker | `tsc --noEmit -p apps/orchestrator/tsconfig.build.json` | yes |
 | Type check frontend | `tsc --noEmit -p apps/frontend/tsconfig.json` | yes |
 | ESLint | changed files under `apps/frontend/src`, frontend config | **no** (see below) |
+| Regression tests | `apps/backend/test/*.test.ts` (`node:assert` scripts, run with the installed `@swc-node/register`) | yes |
 | Shellcheck | `deploy/vps/*.sh` | yes |
 | Compose | `docker compose -f docker-compose.yaml config` | yes |
 | Docker build (PRs) | `Dockerfile.dev`, BuildKit checks, image contents check | yes |
@@ -55,8 +56,12 @@ Runs on every pull request into `main` and every push to `main`.
 
 Not available, documented instead of faked:
 
-- **Tests.** The repo has no test files, and `pnpm test` needs `@nx/jest`, which is
-  not installed. Add a CI step together with the first real test.
+- **A test framework.** `pnpm test` needs `@nx/jest`, which is not installed. Tayra
+  tests are plain scripts in `apps/backend/test/` (excluded from the backend build):
+  they exit non-zero on failure, and CI runs every `*.test.ts` there. Run one locally
+  with `SWC_NODE_PROJECT=apps/backend/test/tsconfig.json node -r @swc-node/register <file>`,
+  without `REDIS_URL`. Their `tsconfig.json` turns off decorator metadata: the tests
+  build classes by hand, and SWC's metadata breaks on the repo's circular imports.
 - **Blocking lint.** The repo-root ESLint config (`eslint.config.mjs`) crashes while
   loading (circular config error in `FlatCompat`), so backend and worker cannot be
   linted. The frontend config works, but upstream code already has errors under it
