@@ -378,6 +378,15 @@ export class PublicIntegrationsController {
       );
     }
 
+    // Tayra Social: no platform URL with an empty client_id when the provider's
+    // credentials are not configured (same message as the dashboard)
+    const notConfigured = this._integrationManager.notConfiguredMessage(
+      integrationProvider.identifier
+    );
+    if (notConfigured) {
+      throw new HttpException({ msg: notConfigured }, 400);
+    }
+
     try {
       const { codeVerifier, state, url } =
         await integrationProvider.generateAuthUrl();

@@ -5,7 +5,8 @@
 # - ESLint on changed frontend files: ADVISORY. The repo-root ESLint config crashes
 #   while loading (upstream issue) and upstream code already has errors under the
 #   frontend config, so lint cannot gate merges without failing every upstream sync.
-# - no test step: the repo has no test files and `pnpm test` needs the missing @nx/jest.
+# - Tayra regression tests (apps/backend/test/*.test.ts): plain node:assert scripts run
+#   through the installed @swc-node/register (`pnpm test` needs the missing @nx/jest).
 # - Docker build on PRs (it runs the real `pnpm run build`, so it is also the app
 #   build check); on main the deploy workflow builds the image instead.
 name: CI
@@ -39,11 +40,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # pnpm version comes from "packageManager", Node from "engines" in package.json.
+      # pnpm version comes from "packageManager" in package.json. Node is pinned to the
+      # production image's version (Dockerfile.dev FROM, package.json "engines"):
+      # node-version-file would pick package.json's stale "volta" pin (20.17.0) instead.
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version-file: package.json
+          node-version: 22.23.4
           cache: pnpm
 
       - name: Install dependencies
@@ -55,6 +58,16 @@ jobs:
         run: pnpm exec tsc --noEmit -p apps/orchestrator/tsconfig.build.json
       - name: Type check frontend
         run: pnpm exec tsc --noEmit -p apps/frontend/tsconfig.json
+
+      # No REDIS_URL: the tests run on the in-memory Redis mock. Dummy credentials only.
+      - name: Regression tests
+        env:
+          SWC_NODE_PROJECT: apps/backend/test/tsconfig.json
+        run: |
+          for t in apps/backend/test/*.test.ts; do
+            echo "== $t"
+            node -r @swc-node/register "$t"
+          done
 
       - name: ESLint changed frontend files (advisory)
         if: github.event_name == 'pull_request'

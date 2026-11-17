@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { XProvider } from '@gitroom/nestjs-libraries/integrations/social/x.provider';
 import { SocialProvider } from '@gitroom/nestjs-libraries/integrations/social/social.integrations.interface';
 import { LinkedinProvider } from '@gitroom/nestjs-libraries/integrations/social/linkedin.provider';
@@ -260,5 +260,29 @@ export class IntegrationManager {
   }
   getSocialIntegration(integration: string): SocialProvider {
     return socialIntegrationList.find((i) => i.identifier === integration)!;
+  }
+
+  // Tayra Social: why a provider cannot start its OAuth flow on this server
+  // (credential variables from its requiredEnv are empty, "A|B" = either), or
+  // undefined when it can. Names variables only, never values.
+  notConfiguredMessage(identifier: string): string | undefined {
+    const provider = this.getSocialIntegration(identifier);
+    const missing = (provider?.requiredEnv || [])
+      .filter((names) => !names.split('|').some((n) => process.env[n]?.trim()))
+      .map((names) => {
+        const [name, ...fallbacks] = names.split('|');
+        return fallbacks.length ? `${name} (or ${fallbacks.join(', ')})` : name;
+      });
+    if (!missing.length) {
+      return undefined;
+    }
+    Logger.warn(
+      `OAuth for "${identifier}" is not configured: ${missing.join(', ')} empty`
+    );
+    return `${
+      provider.name
+    } is not configured on this server yet. The administrator must set ${missing.join(
+      ' and '
+    )}.`;
   }
 }

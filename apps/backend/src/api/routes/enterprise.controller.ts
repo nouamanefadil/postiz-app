@@ -99,6 +99,12 @@ export class EnterpriseController {
         load.provider
       );
 
+      // Tayra Social: credentials not configured, no URL with an empty
+      // client_id (this endpoint answers every failure with an empty body)
+      if (this._integrationManager.notConfiguredMessage(load.provider)) {
+        return;
+      }
+
       const { codeVerifier, state, url } =
         await integrationProvider.generateAuthUrl();
 
