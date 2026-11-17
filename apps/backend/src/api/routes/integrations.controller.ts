@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Logger,
   Param,
   Post,
   Put,
@@ -251,26 +250,11 @@ export class IntegrationsController {
 
     // Tayra Social: clear configuration error instead of an OAuth URL with an
     // empty client_id. Reports variable names only, never values.
-    const missing = (integrationProvider.requiredEnv || [])
-      .filter((names) => !names.split('|').some((n) => process.env[n]?.trim()))
-      .map((names) => {
-        const [name, ...fallbacks] = names.split('|');
-        return fallbacks.length ? `${name} (or ${fallbacks.join(', ')})` : name;
-      });
-    if (missing.length) {
-      Logger.warn(
-        `OAuth for "${
-          integrationProvider.identifier
-        }" is not configured: ${missing.join(', ')} empty`
-      );
-      return {
-        err: true,
-        message: `${
-          integrationProvider.name
-        } is not configured on this server yet. The administrator must set ${missing.join(
-          ' and '
-        )}.`,
-      };
+    const notConfigured = this._integrationManager.notConfiguredMessage(
+      integrationProvider.identifier
+    );
+    if (notConfigured) {
+      return { err: true, message: notConfigured };
     }
 
     try {

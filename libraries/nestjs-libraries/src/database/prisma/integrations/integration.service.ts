@@ -496,6 +496,14 @@ export class IntegrationService {
       );
     }
 
+    // Tayra Social: refuse a link whose platform URL would have an empty
+    // client_id (credentials not configured), like the dashboard does
+    const notConfigured =
+      this._integrationManager.notConfiguredMessage(integration);
+    if (notConfigured) {
+      throw new HttpException(notConfigured, HttpStatus.BAD_REQUEST);
+    }
+
     const token = randomBytes(32).toString('hex');
     await ioRedis.set(
       `connectLink:${token}`,
@@ -574,6 +582,13 @@ export class IntegrationService {
   async startConnectLink(token: string) {
     const { org, integration, redirectUrl } = await this.loadConnectLink(token);
     const provider = this._integrationManager.getSocialIntegration(integration);
+
+    // Tayra Social: credentials can be removed after the link was created
+    const notConfigured =
+      this._integrationManager.notConfiguredMessage(integration);
+    if (notConfigured) {
+      throw new HttpException(notConfigured, HttpStatus.BAD_REQUEST);
+    }
 
     try {
       const { codeVerifier, state, url } = await provider.generateAuthUrl();
