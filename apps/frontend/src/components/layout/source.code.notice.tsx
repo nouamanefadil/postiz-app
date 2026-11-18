@@ -1,6 +1,8 @@
 import clsx from 'clsx';
 import {
   BRAND_NAME,
+  PRIVACY_URL,
+  TERMS_URL,
   UPSTREAM_NAME,
   UPSTREAM_REPOSITORY,
   sourceCodeUrl,
@@ -38,6 +40,24 @@ export const SourceCodeNotice = ({ className }: { className?: string }) => {
       >
         Source code
       </a>
+      {!!TERMS_URL && !!PRIVACY_URL && (
+        <>
+          {' · '}
+          <a
+            href={TERMS_URL}
+            className="underline underline-offset-2 hover:text-[var(--new-accent-text)]"
+          >
+            Terms
+          </a>
+          {' · '}
+          <a
+            href={PRIVACY_URL}
+            className="underline underline-offset-2 hover:text-[var(--new-accent-text)]"
+          >
+            Privacy
+          </a>
+        </>
+      )}
     </p>
   );
 };
