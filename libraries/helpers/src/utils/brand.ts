@@ -6,11 +6,11 @@ export const SOURCE_REPOSITORY = 'https://github.com/nouamanefadil/postiz-app';
 export const UPSTREAM_NAME = 'Postiz';
 export const UPSTREAM_REPOSITORY = 'https://github.com/gitroomhq/postiz-app';
 
-// Tayra Social's own legal pages. Empty until they exist: the registration
-// form hides the "you agree to our Terms / Privacy" line while either is empty.
-// Required before commercial launch (deploy/AGPL-COMPLIANCE.md).
-export const TERMS_URL: string = '';
-export const PRIVACY_URL: string = '';
+// Tayra Social's own legal pages (apps/frontend/src/app/(app)/(legal), public
+// in proxy.ts). The registration form hides the "you agree to our Terms /
+// Privacy" line while either is empty.
+export const TERMS_URL: string = '/terms';
+export const PRIVACY_URL: string = '/privacy';
 
 // The image is built with NEXT_PUBLIC_VERSION = `git describe --tags --always`
 // of the deployed commit: "v2.26.0-9-gc22451b8", a bare tag "v2.26.0", or a

@@ -67,6 +67,11 @@ export async function proxy(request: NextRequest) {
     return topResponse;
   }
 
+  // Tayra Social: the legal pages are public (platform app reviews link to them)
+  if (nextUrl.pathname === '/terms' || nextUrl.pathname === '/privacy') {
+    return topResponse;
+  }
+
   // If the URL is logout, delete the cookie and redirect to login
   if (nextUrl.href.indexOf('/auth/logout') > -1) {
     const response = NextResponse.redirect(

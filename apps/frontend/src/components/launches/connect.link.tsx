@@ -7,6 +7,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { PlatformIcon } from '@gitroom/frontend/components/ui/platform.icon.component';
 import { LogoTextComponent } from '@gitroom/frontend/components/ui/logo-text.component';
+import { PRIVACY_URL, TERMS_URL } from '@gitroom/helpers/utils/brand';
 
 interface ConnectLinkDetails {
   identifier: string;
@@ -292,6 +293,16 @@ export const ConnectLink: FC<{ token: string }> = ({ token }) => {
             <LogoTextComponent />
           </span>
         </div>
+        {!!TERMS_URL && !!PRIVACY_URL && (
+          <div className="mt-[12px] flex justify-center gap-[16px] text-[12px] text-[#9C9C9C]">
+            <a href={TERMS_URL} target="_blank" className="hover:text-white">
+              {t('terms_of_service', 'Terms of Service')}
+            </a>
+            <a href={PRIVACY_URL} target="_blank" className="hover:text-white">
+              {t('privacy_policy', 'Privacy Policy')}
+            </a>
+          </div>
+        )}
       </div>
     </Wrapper>
   );
