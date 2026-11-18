@@ -56,9 +56,10 @@ export const LegalPage = ({
 }) => {
   const linkClass = 'hover:text-white transition-colors';
   return (
-    // dir="ltr": the text is English only, while ChangeDir flips the document
-    // to RTL for Arabic and Hebrew interfaces
-    <div dir="ltr" className="min-h-screen w-full bg-[#111820] text-[#C3CCD8]">
+    // lbox: the text is English only, while ChangeDir flips the document to RTL
+    // for Arabic and Hebrew interfaces. global.scss forces [dir='ltr'] back to
+    // RTL there, so dir="ltr" cannot be used; .lbox keeps the page LTR.
+    <div className="lbox min-h-screen w-full bg-[#111820] text-[#C3CCD8]">
       <header className="border-b border-white/10 bg-[#18222E]">
         <div className="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-[12px] px-[20px] py-[16px]">
           <Link href="/" aria-label="Tayra Social">
