@@ -41,7 +41,7 @@ Where to fill things in:
 | # | Token | Field | What to provide |
 | --- | --- | --- | --- |
 | 1 | `[OPERATOR_LEGAL_NAME_TO_CONFIRM]` | `operatorName` | Full legal name of the individual who operates Tayra Social |
-| 2 | `[OPERATOR_ADDRESS_TO_CONFIRM]` | `address` | Business address of the operator |
+| 2 | ~~`[OPERATOR_ADDRESS_TO_CONFIRM]`~~ | `address` | Done: Bassatine Al Firdaouss, GH1, Imm 5, Mag 24, Mohammedia, Morocco (operator, 2026-11-19) |
 | 3 | `[RC_NUMBER_IF_APPLICABLE]` | `rc` | Only if the operator is registered (e.g. as an individual trader). If not applicable, remove the line from `OperatorDetails` |
 | 4 | `[ICE_NUMBER_IF_APPLICABLE]` | `ice` | Only if the operator has an ICE (e.g. auto-entrepreneur status). Otherwise remove the line |
 | 5 | `[IF_NUMBER_IF_APPLICABLE]` | `taxId` | Only if the operator has a tax identifier for this activity. Otherwise remove the line |

@@ -17,8 +17,8 @@ export const LEGAL = {
   contactEmail: 'maisontayra@gmail.com',
   // To confirm: full legal name of the individual who operates the Service
   operatorName: '',
-  // To confirm: business address of the operator
-  address: '',
+  // Confirmed by the operator (2026-11-19)
+  address: 'Bassatine Al Firdaouss, GH1, Imm 5, Mag 24, Mohammedia, Morocco',
   // Moroccan identifiers, only if the operator has them (leave empty otherwise
   // and remove the lines from OperatorDetails)
   rc: '',
