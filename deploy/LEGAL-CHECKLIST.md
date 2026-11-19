@@ -42,9 +42,9 @@ Where to fill things in:
 | --- | --- | --- | --- |
 | 1 | ~~`[OPERATOR_LEGAL_NAME_TO_CONFIRM]`~~ | `operatorName` | Done: Nouamane Fadil (operator, 2026-11-19) |
 | 2 | ~~`[OPERATOR_ADDRESS_TO_CONFIRM]`~~ | `address` | Done: Bassatine Al Firdaouss, GH1, Imm 5, Mag 24, Mohammedia, Morocco (operator, 2026-11-19) |
-| 3 | `[RC_NUMBER_IF_APPLICABLE]` | `rc` | Only if the operator is registered (e.g. as an individual trader). If not applicable, remove the line from `OperatorDetails` |
-| 4 | `[ICE_NUMBER_IF_APPLICABLE]` | `ice` | Only if the operator has an ICE (e.g. auto-entrepreneur status). Otherwise remove the line |
-| 5 | `[IF_NUMBER_IF_APPLICABLE]` | `taxId` | Only if the operator has a tax identifier for this activity. Otherwise remove the line |
+| 3 | ~~`[RC_NUMBER_IF_APPLICABLE]`~~ | `rc` | Done: the operator has none (2026-11-19); line removed from `OperatorDetails` |
+| 4 | ~~`[ICE_NUMBER_IF_APPLICABLE]`~~ | `ice` | Done: the operator has none (2026-11-19); line removed from `OperatorDetails` |
+| 5 | ~~`[IF_NUMBER_IF_APPLICABLE]`~~ | `taxId` | Done: the operator has none (2026-11-19); line removed from `OperatorDetails` |
 | 6 | `[SUPPORT_PHONE_TO_CONFIRM]` | `phone` | Support phone number, or decide to remove the phone lines |
 | 7 | `[HOSTING_LOCATION_TO_VERIFY]` | `hostingLocation` | Country (and city) of the Hostinger data centre: hPanel › VPS › Overview (the Hostinger API token in use does not list this VPS). English and French share this value |
 | 8 | `[CNDP_FORMALITIES_TO_VERIFY]` | `cndp` | Reference of the CNDP declaration or authorisation (receipt number and date) once obtained. Do not fill in before the formality is done |
@@ -82,5 +82,6 @@ Set `draft: false` and update `lastUpdated` only when all items are resolved.
   is written or tested yet. The text only promises to review and reply, not a result.
 - Response time for data-subject requests (the policy refers to the time limits of
   the applicable law).
-- Whether an individual operator must publish identifiers such as ICE / IF
-  (items 3-5).
+- Whether an individual operator with no RC / ICE / IF needs a registration (e.g.
+  auto-entrepreneur status) to run the Service, and must then publish those
+  identifiers (items 3-5).

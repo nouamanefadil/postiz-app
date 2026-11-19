@@ -19,11 +19,6 @@ export const LEGAL = {
   operatorName: 'Nouamane Fadil',
   // Confirmed by the operator (2026-11-19)
   address: 'Bassatine Al Firdaouss, GH1, Imm 5, Mag 24, Mohammedia, Morocco',
-  // Moroccan identifiers, only if the operator has them (leave empty otherwise
-  // and remove the lines from OperatorDetails)
-  rc: '',
-  ice: '',
-  taxId: '',
   // To confirm: support phone number (optional)
   phone: '',
   // To verify: country of the Hostinger data centre (hPanel > VPS > Overview)
@@ -104,17 +99,6 @@ export const OperatorDetails = ({ lang }: { lang: LegalLang }) => {
       <li>
         {fr ? 'Adresse' : 'Address'}:{' '}
         <Detail value={LEGAL.address} id="OPERATOR_ADDRESS_TO_CONFIRM" />
-      </li>
-      <li>
-        {fr ? 'Registre du commerce (RC)' : 'Trade register (RC)'}:{' '}
-        <Detail value={LEGAL.rc} id="RC_NUMBER_IF_APPLICABLE" />
-      </li>
-      <li>
-        ICE: <Detail value={LEGAL.ice} id="ICE_NUMBER_IF_APPLICABLE" />
-      </li>
-      <li>
-        {fr ? 'Identifiant fiscal (IF)' : 'Tax identifier (IF)'}:{' '}
-        <Detail value={LEGAL.taxId} id="IF_NUMBER_IF_APPLICABLE" />
       </li>
       <li>
         {fr ? 'E-mail' : 'Email'}: <ContactEmail />
