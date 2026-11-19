@@ -15,6 +15,8 @@ services:
       DATABASE_URL: 'postgresql://postiz-user:${POSTIZ_DB_PASSWORD:?POSTIZ_DB_PASSWORD missing from .env}@postiz-postgres:5432/postiz-db-local'
       # 'true' still allows the very first signup (0 organizations), then closes registration.
       DISABLE_REGISTRATION: 'true'
+      # Erase data deleted more than 90 days ago (daily); unset = dry run, counts only in the logs.
+      PURGE_DELETED_DATA: 'true'
       # Integrations: fill these in .env when you have credentials, then re-run `docker compose up -d postiz`.
       FACEBOOK_APP_ID: '${FACEBOOK_APP_ID:-}'          # Facebook pages + Instagram (business, via Facebook)
       FACEBOOK_APP_SECRET: '${FACEBOOK_APP_SECRET:-}'
