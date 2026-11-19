@@ -5,21 +5,22 @@ import { LogoTextComponent } from '@gitroom/frontend/components/ui/logo-text.com
 import { SourceCodeNotice } from '@gitroom/frontend/components/layout/source.code.notice';
 import { PRIVACY_URL, TERMS_URL } from '@gitroom/helpers/utils/brand';
 
-// Tayra Social: the business details the Terms and the Privacy Policy need.
+// Tayra Social: the operator details the Terms and the Privacy Policy need.
 // An empty value is shown on the pages as a highlighted [TOKEN] placeholder, so
 // nothing unconfirmed is published as a fact. The full list of what is still
 // missing (including placeholders inside the page text) is in
 // deploy/LEGAL-CHECKLIST.md.
 export const LEGAL = {
-  // Confirmed by the operator
+  // Confirmed by the operator: Tayra Social is run by an individual (natural
+  // person, not a company) under the trading name Maison Tayra
   tradingName: 'Maison Tayra',
   contactEmail: 'maisontayra@gmail.com',
-  // To confirm: registered legal name of the business and its legal form
-  legalEntity: '',
-  legalForm: '',
-  // To confirm: registered or business address
+  // To confirm: full legal name of the individual who operates the Service
+  operatorName: '',
+  // To confirm: business address of the operator
   address: '',
-  // Moroccan registration numbers, if applicable
+  // Moroccan identifiers, only if the operator has them (leave empty otherwise
+  // and remove the lines from OperatorDetails)
   rc: '',
   ice: '',
   taxId: '',
@@ -68,25 +69,41 @@ export const ContactEmail = () => (
   <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>
 );
 
+// "<name>, an individual, under the trading name Maison Tayra"
+export const OperatorName = ({ lang }: { lang: LegalLang }) =>
+  lang === 'fr' ? (
+    <>
+      <Detail value={LEGAL.operatorName} id="OPERATOR_LEGAL_NAME_TO_CONFIRM" />,
+      personne physique, sous le nom commercial {LEGAL.tradingName}
+    </>
+  ) : (
+    <>
+      <Detail value={LEGAL.operatorName} id="OPERATOR_LEGAL_NAME_TO_CONFIRM" />,
+      an individual, under the trading name {LEGAL.tradingName}
+    </>
+  );
+
 // The operator's identity, shown in the contact section of both pages
 export const OperatorDetails = ({ lang }: { lang: LegalLang }) => {
   const fr = lang === 'fr';
   return (
     <ul>
       <li>
+        {fr ? 'Exploitant' : 'Operator'}:{' '}
+        <Detail
+          value={LEGAL.operatorName}
+          id="OPERATOR_LEGAL_NAME_TO_CONFIRM"
+        />{' '}
+        {fr
+          ? '(personne physique, pas une société)'
+          : '(individual, not a company)'}
+      </li>
+      <li>
         {fr ? 'Nom commercial' : 'Trading name'}: {LEGAL.tradingName}
       </li>
       <li>
-        {fr ? 'Dénomination légale' : 'Legal name'}:{' '}
-        <Detail value={LEGAL.legalEntity} id="LEGAL_ENTITY_NAME_TO_CONFIRM" />
-      </li>
-      <li>
-        {fr ? 'Forme juridique' : 'Legal form'}:{' '}
-        <Detail value={LEGAL.legalForm} id="LEGAL_FORM_TO_CONFIRM" />
-      </li>
-      <li>
         {fr ? 'Adresse' : 'Address'}:{' '}
-        <Detail value={LEGAL.address} id="LEGAL_BUSINESS_ADDRESS_TO_CONFIRM" />
+        <Detail value={LEGAL.address} id="OPERATOR_ADDRESS_TO_CONFIRM" />
       </li>
       <li>
         {fr ? 'Registre du commerce (RC)' : 'Trade register (RC)'}:{' '}
@@ -131,7 +148,7 @@ const UI = {
     privacy: 'Privacy',
     signIn: 'Sign in',
     draft:
-      'Draft: information shown in brackets, such as [LEGAL_ENTITY_NAME_TO_CONFIRM], is still being confirmed.',
+      'Draft: information shown in brackets, such as [OPERATOR_LEGAL_NAME_TO_CONFIRM], is still being confirmed.',
   },
   fr: {
     contents: 'Sommaire',
@@ -140,7 +157,7 @@ const UI = {
     privacy: 'Confidentialité',
     signIn: 'Connexion',
     draft:
-      'Version provisoire : les informations entre crochets, comme [LEGAL_ENTITY_NAME_TO_CONFIRM], sont en cours de confirmation.',
+      'Version provisoire : les informations entre crochets, comme [OPERATOR_LEGAL_NAME_TO_CONFIRM], sont en cours de confirmation.',
   },
 };
 

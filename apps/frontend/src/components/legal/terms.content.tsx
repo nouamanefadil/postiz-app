@@ -5,6 +5,7 @@ import {
   LegalDocument,
   LegalLang,
   OperatorDetails,
+  OperatorName,
   legalHref,
 } from '@gitroom/frontend/components/legal/legal.page';
 import { PRIVACY_URL, sourceCodeUrl } from '@gitroom/helpers/utils/brand';
@@ -40,19 +41,6 @@ const platformTerms = (labels: [string, string, string]) => (
   </>
 );
 
-const operatorSentence = (lang: LegalLang) =>
-  lang === 'fr' ? (
-    <>
-      exploité sous le nom commercial {LEGAL.tradingName} par{' '}
-      <Detail value={LEGAL.legalEntity} id="LEGAL_ENTITY_NAME_TO_CONFIRM" />
-    </>
-  ) : (
-    <>
-      operated under the trading name {LEGAL.tradingName} by{' '}
-      <Detail value={LEGAL.legalEntity} id="LEGAL_ENTITY_NAME_TO_CONFIRM" />
-    </>
-  );
-
 const en: LegalDocument = {
   title: 'Terms of Service',
   description: 'The terms that apply to the use of Tayra Social.',
@@ -75,8 +63,9 @@ const en: LegalDocument = {
             <a href="https://social.maisontayra.com">
               https://social.maisontayra.com
             </a>{' '}
-            (the &quot;Service&quot;). The Service is {operatorSentence('en')}{' '}
-            (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;).
+            (the &quot;Service&quot;). The Service is operated by{' '}
+            <OperatorName lang="en" /> (&quot;we&quot;, &quot;us&quot;,
+            &quot;our&quot;). Maison Tayra is a trading name, not a company.
           </p>
           <p>
             By signing in to or using the Service you agree to these Terms and
@@ -125,9 +114,9 @@ const en: LegalDocument = {
               for your accounts and posts;
             </li>
             <li>
-              use the Service through its public API and through AI assistants
-              that you authorise (MCP), and send post events to webhooks that
-              you configure;
+              use the Service through its public API and through external AI
+              assistants that you connect and authorise (MCP), and send post
+              events to webhooks that you configure;
             </li>
             <li>contact us for support by email.</li>
           </ul>
@@ -157,6 +146,11 @@ const en: LegalDocument = {
             <li>
               Tell us without delay at <ContactEmail /> if you believe your
               account has been used without your permission.
+            </li>
+            <li>
+              The Service does not send emails automatically. If you forget your
+              password, contact us at <ContactEmail /> from the address of your
+              account.
             </li>
             <li>
               Workspace members can see and use the channels, posts and media of
@@ -487,8 +481,9 @@ const fr: LegalDocument = {
             <a href="https://social.maisontayra.com">
               https://social.maisontayra.com
             </a>{' '}
-            (le {'«\u00a0Service\u00a0»'}). Le Service est{' '}
-            {operatorSentence('fr')} ({'«\u00a0nous\u00a0»'}).
+            (le {'«\u00a0Service\u00a0»'}). Le Service est exploité par{' '}
+            <OperatorName lang="fr" /> ({'«\u00a0nous\u00a0»'}). Maison Tayra
+            est un nom commercial, et non une société.
           </p>
           <p>
             En vous connectant au Service ou en l&apos;utilisant, vous acceptez
@@ -544,8 +539,9 @@ const fr: LegalDocument = {
             </li>
             <li>
               utiliser le Service au moyen de son API publique et des assistants
-              d&apos;IA que vous autorisez (MCP), et envoyer des événements de
-              publication aux webhooks que vous configurez ;
+              d&apos;IA externes que vous connectez et autorisez (MCP), et
+              envoyer des événements de publication aux webhooks que vous
+              configurez ;
             </li>
             <li>contacter notre assistance par e-mail.</li>
           </ul>
@@ -579,6 +575,11 @@ const fr: LegalDocument = {
             <li>
               Prévenez-nous sans délai à l&apos;adresse <ContactEmail /> si vous
               pensez que votre compte a été utilisé sans votre autorisation.
+            </li>
+            <li>
+              Le Service n&apos;envoie pas d&apos;e-mails automatiquement. Si
+              vous oubliez votre mot de passe, contactez-nous à l&apos;adresse{' '}
+              <ContactEmail /> depuis l&apos;adresse de votre compte.
             </li>
             <li>
               Les membres d&apos;un espace de travail peuvent voir et utiliser

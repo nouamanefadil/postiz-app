@@ -5,6 +5,7 @@ import {
   LegalDocument,
   LegalLang,
   OperatorDetails,
+  OperatorName,
   Todo,
   legalHref,
 } from '@gitroom/frontend/components/legal/legal.page';
@@ -236,9 +237,9 @@ const en: LegalDocument = {
   intro: (
     <p>
       This policy explains what information Tayra Social collects, why it is
-      processed, how it is protected, how you can delete it, and how you can
-      disconnect your social media accounts. It applies together with our{' '}
-      <a href={TERMS_URL}>Terms of Service</a>.
+      processed, how it is protected, how long it is kept, how you can delete
+      it, and how you can disconnect your social media accounts. It applies
+      together with our <a href={TERMS_URL}>Terms of Service</a>.
     </p>
   ),
   sections: [
@@ -252,15 +253,10 @@ const en: LegalDocument = {
             <a href="https://social.maisontayra.com">
               https://social.maisontayra.com
             </a>{' '}
-            (the &quot;Service&quot;), is operated under the trading name{' '}
-            {LEGAL.tradingName} by{' '}
-            <Detail
-              value={LEGAL.legalEntity}
-              id="LEGAL_ENTITY_NAME_TO_CONFIRM"
-            />{' '}
-            (&quot;we&quot;, &quot;us&quot;). We decide why and how the personal
-            data described in this policy is processed, and we are responsible
-            for it.
+            (the &quot;Service&quot;), is operated by <OperatorName lang="en" />{' '}
+            (&quot;we&quot;, &quot;us&quot;). Maison Tayra is a trading name,
+            not a company. The operator decides why and how the personal data
+            described in this policy is processed and is responsible for it.
           </p>
           <p>
             We process personal data in accordance with Moroccan Law No. 09-08
@@ -295,7 +291,7 @@ const en: LegalDocument = {
               The IP address and browser type (user agent) recorded when your
               account is created, and the time you were last active.
             </li>
-            <li>Your email notification preferences.</li>
+            <li>Your notification preferences.</li>
           </ul>
           <p>
             Sign-in is by email address and password. Sign-in with an external
@@ -305,8 +301,9 @@ const en: LegalDocument = {
           <p>
             Workspace name, members and their roles, invitations, API keys,
             webhook addresses, signatures, tags, RSS sources for automatic
-            posting, keys of third-party tools you add, and the AI assistants
-            and applications you authorise.
+            posting, keys of third-party tools you add, and the external AI
+            assistants and applications you authorise to access your workspace
+            (for example through MCP).
           </p>
           <h3>Connected social media accounts</h3>
           <p>
@@ -333,17 +330,11 @@ const en: LegalDocument = {
             They are retrieved to show them to you and may be cached
             temporarily.
           </p>
-          <h3>AI features</h3>
-          <p>
-            If you use the AI assistant, your messages and its answers are
-            stored in our database so that you can continue the conversation,
-            and they are sent to the AI provider that generates the answers:{' '}
-            <Todo id="AI_PROVIDER_TO_CONFIRM" />.
-          </p>
           <h3>Support requests</h3>
           <p>
-            When you contact us, we receive your email address and the content
-            of your message, and use them to answer you.
+            Support is handled manually by email. When you write to{' '}
+            <ContactEmail />, we receive your email address and the content of
+            your message, and use them to answer you.
           </p>
           <h3>Technical information</h3>
           <p>
@@ -352,6 +343,12 @@ const en: LegalDocument = {
             IP address, browser type, requested address and time of each
             request. The application logs errors, which can include the error
             returned by a platform.
+          </p>
+          <h3>What we do not use</h3>
+          <p>
+            The Service has no AI features enabled and sends no data to an AI
+            provider. It does not send emails automatically: notifications are
+            shown inside the Service only.
           </p>
         </>
       ),
@@ -377,16 +374,17 @@ const en: LegalDocument = {
               our contract);
             </li>
             <li>
-              send you the notifications you enabled, such as a post that failed
-              (performance of our contract, according to your preferences);
+              show you notifications inside the Service, such as a post that
+              failed (performance of our contract);
             </li>
             <li>
-              answer your requests and provide support (performance of our
-              contract);
+              answer your requests and provide support by email (performance of
+              our contract);
             </li>
             <li>
-              prevent abuse, secure the Service and keep backups (our legitimate
-              interest in a secure and reliable Service);
+              prevent abuse, secure the Service and back up the database before
+              software updates (our legitimate interest in a secure and reliable
+              Service);
             </li>
             <li>meet our legal obligations.</li>
           </ul>
@@ -439,16 +437,20 @@ const en: LegalDocument = {
             request and to renew the connection.
           </li>
           <li>
+            Tokens are currently stored in the database without additional
+            encryption. They are protected by the access restrictions of the
+            server, and the database backups described below contain them in the
+            same form.
+          </li>
+          <li>
             Tokens are not shown in the interface. They are sent only to the
             platform that issued them, over encrypted HTTPS connections.
           </li>
           <li>
-            Encryption of stored tokens:{' '}
-            <Todo id="TOKEN_ENCRYPTION_AT_REST_TO_CONFIRM" />
-          </li>
-          <li>
-            Revoking access on the platform makes the stored tokens unusable
-            immediately (see <a href="#disconnect">Disconnecting accounts</a>).
+            Deleting a channel in Tayra Social does not revoke the access you
+            granted on the platform. Revoking access in the platform&apos;s
+            settings makes the stored tokens unusable immediately (see{' '}
+            <a href="#disconnect">Disconnecting accounts</a>).
           </li>
         </ul>
       ),
@@ -458,19 +460,21 @@ const en: LegalDocument = {
       title: 'Security',
       body: (
         <>
-          <p>We protect personal data with measures that include:</p>
+          <p>The measures in place are:</p>
           <ul>
             <li>HTTPS encryption of all traffic to the Service;</li>
             <li>passwords stored only as bcrypt hashes;</li>
             <li>sign-in cookies that are HTTP-only and secure;</li>
             <li>access to the server restricted to our administrator;</li>
-            <li>regular backups of the database.</li>
+            <li>a backup of the database before each software update.</li>
           </ul>
           <p>
-            No system is completely secure, and we cannot guarantee absolute
-            security. We do not claim any security certification. If we become
-            aware of a breach that affects your data, we will inform you and the
-            competent authorities where the law requires it.
+            Stored data, including access tokens, is not encrypted at rest by
+            the application. No system is completely secure, and we cannot
+            guarantee absolute security. We do not claim any security
+            certification. If we become aware of a breach that affects your
+            data, we will inform you and the competent authorities where the law
+            requires it.
           </p>
         </>
       ),
@@ -497,8 +501,8 @@ const en: LegalDocument = {
                 <tr>
                   <td className="min-w-[120px] text-white">Hostinger</td>
                   <td>
-                    Hosts the server (VPS) that runs the Service, its database
-                    and the uploaded files.
+                    Hosts the server (VPS) that runs the Service, its database,
+                    its backups and the uploaded files.
                   </td>
                   <td>All data described in this policy</td>
                 </tr>
@@ -526,18 +530,12 @@ const en: LegalDocument = {
                   <td>Your IP address and browser request data</td>
                 </tr>
                 <tr>
-                  <td className="text-white">
-                    <Todo id="EMAIL_PROVIDER_TO_CONFIRM" />
+                  <td className="text-white">Google (Gmail)</td>
+                  <td>
+                    Hosts the mailbox {LEGAL.contactEmail} used for support and
+                    privacy requests.
                   </td>
-                  <td>Sends account and notification emails.</td>
-                  <td>Your email address and the email content</td>
-                </tr>
-                <tr>
-                  <td className="text-white">
-                    <Todo id="AI_PROVIDER_TO_CONFIRM" />
-                  </td>
-                  <td>Generates the answers of the AI assistant.</td>
-                  <td>The messages you send to the AI assistant</td>
+                  <td>The emails you send us and our replies</td>
                 </tr>
               </tbody>
             </table>
@@ -582,62 +580,99 @@ const en: LegalDocument = {
           <h3>How long we keep data</h3>
           <ul>
             <li>
-              Your account, workspace, connected accounts and content: for as
-              long as your account exists, unless you delete them earlier.
+              Your account, workspaces, connected accounts and content are kept
+              for as long as your account exists.
             </li>
             <li>
-              Posts, media and channels that you delete are hidden from the
-              Service immediately, but are kept in the database (and uploaded
-              files on the server) until they are erased:{' '}
+              The Service does not purge data automatically. Posts, media,
+              channels and accounts that are deleted are hidden or pseudonymised
+              (see below) but stay in the database, and uploaded files stay on
+              the server, until we erase them at your request. Maximum period
+              before automatic erasure:{' '}
               <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
             </li>
             <li>
-              Backups: before each update of the software we make a full backup
-              of the database. The 7 most recent backups are kept on the server
-              and older ones are deleted automatically.
-            </li>
-            <li>
-              Server and application logs:{' '}
+              Backups: a full copy of the database is made before each software
+              update (not on a fixed schedule). The 7 most recent copies are
+              kept on the server and older ones are deleted automatically, so a
+              copy is kept until seven newer updates have been made. Backups
+              contain all the data in the database at that time, including
+              deleted items and access tokens. Maximum backup age:{' '}
               <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
             </li>
             <li>
-              Support emails: <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
+              Proxy logs (IP address, browser type, requested address and time):
+              rotated every week; access logs are kept for about five weeks and
+              error logs for about eleven weeks.
+            </li>
+            <li>
+              Application logs are deleted whenever the application is
+              redeployed, which happens at each software update; there is no
+              fixed period.
+            </li>
+            <li>
+              Support emails are kept in our mailbox:{' '}
+              <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
             </li>
           </ul>
           <h3>Deleting your account</h3>
           <p>
             You can delete your account at any time in{' '}
-            <strong>Settings › Delete your account</strong>. When you do:
+            <strong>Settings › Delete your account</strong>. Before you do,
+            revoke the AI assistants and applications you authorised in{' '}
+            <strong>Settings › Apps › Approved Apps</strong>, and revoke Tayra
+            Social&apos;s access on each platform (see the next section):
+            account deletion does not do this for you. When you delete your
+            account:
           </p>
           <ul>
             <li>
               your email address, names and external sign-in identifier are
-              replaced by irreversible hashes, and your password, bio, profile
-              picture, IP address and browser type are removed;
+              replaced by MD5 hashes, and your password, bio, profile picture
+              link, IP address and browser type are removed. This is
+              pseudonymisation, not anonymisation: someone who already knows
+              your email address could match it to its hash. Your time zone,
+              notification preferences, last activity date and account creation
+              date remain attached to the pseudonymised record;
             </li>
             <li>
-              workspaces in which you are the only member are closed: their
-              connected accounts&apos; tokens, names and profiles are replaced
-              by irreversible hashes, so they can no longer be used, and their
-              posts are marked as deleted;
+              every workspace in which you are the only super administrator is
+              closed, even if it has other members, and those members lose
+              access to it. In a closed workspace, the tokens, names,
+              identifiers and profiles of the connected accounts are replaced by
+              MD5 hashes so the tokens can no longer be used, and the posts are
+              marked as deleted;
             </li>
             <li>
-              you are removed from workspaces you share with other members,
-              which keep their content.
+              in a workspace that has another super administrator, you are only
+              removed from it; the workspace and its content remain.
             </li>
           </ul>
           <p>
-            To have all remaining data erased, including deleted posts and
-            uploaded files, email us at <ContactEmail /> from the address of
-            your account. We will confirm once the deletion is complete. Data in
-            backups is removed when those backups are replaced.
+            After deletion, the following remain in the database (and the files
+            on the server) until we erase them at your request: the content of
+            posts marked as deleted, uploaded media and their files, comments
+            you wrote, the settings of closed workspaces (name, API key,
+            webhooks, signatures, RSS sources, keys of third-party tools), error
+            records (which can contain post content), notifications, and the
+            authorisations given to AI assistants and applications.
+          </p>
+          <h3>Permanent erasure and copies of your data</h3>
+          <p>
+            The Service has no self-service data export or permanent erasure. To
+            receive a copy of your data, or to have all remaining data erased,
+            including deleted posts and uploaded files, email us at{' '}
+            <ContactEmail /> from the address of your account. These requests
+            are handled manually and we will confirm once they are completed.
+            Data in backups is removed when those backups are deleted, as
+            described above.
           </p>
           <h3>Deleting data received from Facebook, Instagram or TikTok</h3>
           <p>
             To remove the data we hold about a connected Facebook, Instagram or
-            TikTok account: delete the channel in Tayra Social (see the next
-            section), remove Tayra Social&apos;s access in the platform&apos;s
-            settings, and email <ContactEmail /> to have the stored data erased.
+            TikTok account: delete the channel in Tayra Social, remove Tayra
+            Social&apos;s access in the platform&apos;s settings (see the next
+            section), and email <ContactEmail /> to have the stored data erased.
           </p>
         </>
       ),
@@ -650,15 +685,20 @@ const en: LegalDocument = {
           <p>
             <strong>In Tayra Social:</strong> open the menu of the channel in
             the channel list and choose <strong>Delete</strong> (you can also
-            choose <strong>Disable Channel</strong> to pause it). A deleted
-            channel is no longer used for anything: nothing is published to it
-            and no data is retrieved from it. Its stored tokens remain in our
-            database until you delete your account or ask us to erase them.
+            choose <strong>Disable Channel</strong> to pause it). The channel is
+            marked as deleted: nothing is published to it, its access is no
+            longer renewed and no data is retrieved from it, and its posts are
+            also marked as deleted. Its stored tokens remain in our database
+            until you delete your account or ask us to erase them.
           </p>
           <p>
-            <strong>On the platform:</strong> revoking access makes the stored
-            tokens unusable immediately. Menu names can vary between app
-            versions.
+            <strong>
+              Deleting a channel does not revoke the access you granted on the
+              platform.
+            </strong>{' '}
+            To revoke it, remove Tayra Social in the platform&apos;s settings.
+            Once revoked, the stored tokens stop working immediately. Menu names
+            can vary between app versions.
           </p>
           <ul>
             <li>
@@ -699,9 +739,8 @@ const en: LegalDocument = {
           <p>
             To exercise your rights, email <ContactEmail /> from the address of
             your account, or include enough information for us to verify your
-            identity. The Service has no self-service data export; we provide a
-            copy of your data on request. We answer within the time limits set
-            by the applicable law.
+            identity. Requests are handled manually. We answer within the time
+            limits set by the applicable law.
           </p>
           <p>
             If you believe your rights have not been respected, you can lodge a
@@ -726,10 +765,11 @@ const en: LegalDocument = {
               value={LEGAL.hostingLocation}
               id="HOSTING_LOCATION_TO_VERIFY"
             />
-            . Cloudflare handles traffic through its global network, and the
-            platforms you connect (Meta, TikTok) process data in the countries
-            they operate in. Your data may therefore be transferred to and
-            processed in countries other than Morocco.
+            . Cloudflare handles traffic through its global network, Google
+            hosts our support mailbox, and the platforms you connect (Meta,
+            TikTok) process data in the countries they operate in. Your data may
+            therefore be transferred to and processed in countries other than
+            Morocco.
           </p>
           <p>
             Transfers of personal data outside Morocco are made under the
@@ -783,9 +823,9 @@ const fr: LegalDocument = {
   intro: (
     <p>
       Cette politique explique quelles informations Tayra Social collecte,
-      pourquoi elles sont traitées, comment elles sont protégées, comment vous
-      pouvez les supprimer et comment déconnecter vos comptes de réseaux
-      sociaux. Elle s&apos;applique avec nos{' '}
+      pourquoi elles sont traitées, comment elles sont protégées, combien de
+      temps elles sont conservées, comment vous pouvez les supprimer et comment
+      déconnecter vos comptes de réseaux sociaux. Elle s&apos;applique avec nos{' '}
       <a href={legalHref('fr', TERMS_URL)}>
         Conditions générales d&apos;utilisation
       </a>
@@ -803,15 +843,11 @@ const fr: LegalDocument = {
             <a href="https://social.maisontayra.com">
               https://social.maisontayra.com
             </a>{' '}
-            (le « Service »), est exploité sous le nom commercial{' '}
-            {LEGAL.tradingName} par{' '}
-            <Detail
-              value={LEGAL.legalEntity}
-              id="LEGAL_ENTITY_NAME_TO_CONFIRM"
-            />{' '}
-            (« nous »). Nous déterminons les finalités et les moyens du
+            (le {'« Service »'}), est exploité par <OperatorName lang="fr" /> (
+            {'« nous »'}). Maison Tayra est un nom commercial, et non une
+            société. L&apos;exploitant détermine les finalités et les moyens du
             traitement des données personnelles décrites dans cette politique et
-            en sommes responsables.
+            en est responsable.
           </p>
           <p>
             Nous traitons les données personnelles conformément à la loi
@@ -849,7 +885,7 @@ const fr: LegalDocument = {
               enregistrés lors de la création de votre compte, ainsi que la date
               de votre dernière activité.
             </li>
-            <li>Vos préférences de notifications par e-mail.</li>
+            <li>Vos préférences de notifications.</li>
           </ul>
           <p>
             La connexion se fait par adresse e-mail et mot de passe. La
@@ -861,7 +897,8 @@ const fr: LegalDocument = {
             Nom de l&apos;espace de travail, membres et rôles, invitations, clés
             d&apos;API, adresses de webhooks, signatures, étiquettes, sources
             RSS de publication automatique, clés des outils tiers que vous
-            ajoutez, et assistants d&apos;IA et applications que vous autorisez.
+            ajoutez, et assistants d&apos;IA externes et applications que vous
+            autorisez à accéder à votre espace de travail (par exemple via MCP).
           </p>
           <h3>Comptes de réseaux sociaux connectés</h3>
           <p>
@@ -886,22 +923,15 @@ const fr: LegalDocument = {
             Lorsque vous utilisez ces fonctionnalités, nous récupérons auprès
             des plateformes la liste des pages ou comptes que vous pouvez
             connecter, les commentaires sur vos publications et des statistiques
-            comme les abonnés, impressions, vues, mentions « J&apos;aime » et
+            comme les abonnés, impressions, vues, mentions J&apos;aime et
             commentaires. Elles sont récupérées pour vous être affichées et
             peuvent être mises en cache temporairement.
           </p>
-          <h3>Fonctionnalités d&apos;IA</h3>
-          <p>
-            Si vous utilisez l&apos;assistant d&apos;IA, vos messages et ses
-            réponses sont conservés dans notre base de données afin que vous
-            puissiez poursuivre la conversation, et ils sont transmis au
-            fournisseur d&apos;IA qui génère les réponses :{' '}
-            <Todo id="AI_PROVIDER_TO_CONFIRM" />.
-          </p>
           <h3>Demandes d&apos;assistance</h3>
           <p>
-            Lorsque vous nous contactez, nous recevons votre adresse e-mail et
-            le contenu de votre message, et les utilisons pour vous répondre.
+            L&apos;assistance est assurée manuellement par e-mail. Lorsque vous
+            écrivez à <ContactEmail />, nous recevons votre adresse e-mail et le
+            contenu de votre message, et les utilisons pour vous répondre.
           </p>
           <h3>Informations techniques</h3>
           <p>
@@ -911,6 +941,13 @@ const fr: LegalDocument = {
             l&apos;heure de chaque requête. L&apos;application journalise les
             erreurs, qui peuvent inclure l&apos;erreur renvoyée par une
             plateforme.
+          </p>
+          <h3>Ce que nous n&apos;utilisons pas</h3>
+          <p>
+            Le Service n&apos;a aucune fonctionnalité d&apos;IA activée et
+            n&apos;envoie aucune donnée à un fournisseur d&apos;IA. Il
+            n&apos;envoie pas d&apos;e-mails automatiquement : les notifications
+            sont affichées uniquement dans le Service.
           </p>
         </>
       ),
@@ -936,18 +973,18 @@ const fr: LegalDocument = {
               (exécution de notre contrat) ;
             </li>
             <li>
-              vous envoyer les notifications que vous avez activées, par exemple
-              en cas d&apos;échec d&apos;une publication (exécution de notre
-              contrat, selon vos préférences) ;
-            </li>
-            <li>
-              répondre à vos demandes et vous assister (exécution de notre
+              vous afficher des notifications dans le Service, par exemple en
+              cas d&apos;échec d&apos;une publication (exécution de notre
               contrat) ;
             </li>
             <li>
-              prévenir les abus, sécuriser le Service et effectuer des
-              sauvegardes (notre intérêt légitime à disposer d&apos;un Service
-              sûr et fiable) ;
+              répondre à vos demandes et vous assister par e-mail (exécution de
+              notre contrat) ;
+            </li>
+            <li>
+              prévenir les abus, sécuriser le Service et sauvegarder la base de
+              données avant les mises à jour du logiciel (notre intérêt légitime
+              à disposer d&apos;un Service sûr et fiable) ;
             </li>
             <li>respecter nos obligations légales.</li>
           </ul>
@@ -1003,16 +1040,20 @@ const fr: LegalDocument = {
             connexion.
           </li>
           <li>
+            Les jetons sont actuellement conservés dans la base de données sans
+            chiffrement supplémentaire. Ils sont protégés par les restrictions
+            d&apos;accès au serveur, et les sauvegardes de la base de données
+            décrites ci-dessous les contiennent sous la même forme.
+          </li>
+          <li>
             Les jetons ne sont pas affichés dans l&apos;interface. Ils ne sont
             envoyés qu&apos;à la plateforme qui les a délivrés, via des
             connexions HTTPS chiffrées.
           </li>
           <li>
-            Chiffrement des jetons conservés :{' '}
-            <Todo id="TOKEN_ENCRYPTION_AT_REST_TO_CONFIRM" />
-          </li>
-          <li>
-            La révocation de l&apos;accès sur la plateforme rend immédiatement
+            La suppression d&apos;un canal dans Tayra Social ne révoque pas
+            l&apos;accès accordé sur la plateforme. La révocation de
+            l&apos;accès dans les paramètres de la plateforme rend immédiatement
             les jetons conservés inutilisables (voir{' '}
             <a href="#disconnect">Déconnexion des comptes</a>).
           </li>
@@ -1024,10 +1065,7 @@ const fr: LegalDocument = {
       title: 'Sécurité',
       body: (
         <>
-          <p>
-            Nous protégeons les données personnelles par des mesures qui
-            comprennent :
-          </p>
+          <p>Les mesures en place sont :</p>
           <ul>
             <li>le chiffrement HTTPS de tout le trafic vers le Service ;</li>
             <li>
@@ -1036,14 +1074,19 @@ const fr: LegalDocument = {
             </li>
             <li>des cookies de connexion HTTP-only et sécurisés ;</li>
             <li>un accès au serveur réservé à notre administrateur ;</li>
-            <li>des sauvegardes régulières de la base de données.</li>
+            <li>
+              une sauvegarde de la base de données avant chaque mise à jour du
+              logiciel.
+            </li>
           </ul>
           <p>
-            Aucun système n&apos;est totalement sûr et nous ne pouvons pas
-            garantir une sécurité absolue. Nous ne revendiquons aucune
-            certification de sécurité. Si nous avons connaissance d&apos;une
-            violation affectant vos données, nous vous en informerons, ainsi que
-            les autorités compétentes lorsque la loi l&apos;exige.
+            Les données conservées, y compris les jetons d&apos;accès, ne sont
+            pas chiffrées au repos par l&apos;application. Aucun système
+            n&apos;est totalement sûr et nous ne pouvons pas garantir une
+            sécurité absolue. Nous ne revendiquons aucune certification de
+            sécurité. Si nous avons connaissance d&apos;une violation affectant
+            vos données, nous vous en informerons, ainsi que les autorités
+            compétentes lorsque la loi l&apos;exige.
           </p>
         </>
       ),
@@ -1072,7 +1115,7 @@ const fr: LegalDocument = {
                   <td className="min-w-[120px] text-white">Hostinger</td>
                   <td>
                     Héberge le serveur (VPS) qui fait fonctionner le Service, sa
-                    base de données et les fichiers téléversés.
+                    base de données, ses sauvegardes et les fichiers téléversés.
                   </td>
                   <td>Toutes les données décrites dans cette politique</td>
                 </tr>
@@ -1104,20 +1147,13 @@ const fr: LegalDocument = {
                   </td>
                 </tr>
                 <tr>
-                  <td className="text-white">
-                    <Todo id="EMAIL_PROVIDER_TO_CONFIRM" />
-                  </td>
+                  <td className="text-white">Google (Gmail)</td>
                   <td>
-                    Envoie les e-mails liés au compte et les notifications.
+                    Héberge la boîte de réception {LEGAL.contactEmail} utilisée
+                    pour l&apos;assistance et les demandes relatives à la vie
+                    privée.
                   </td>
-                  <td>Votre adresse e-mail et le contenu de l&apos;e-mail</td>
-                </tr>
-                <tr>
-                  <td className="text-white">
-                    <Todo id="AI_PROVIDER_TO_CONFIRM" />
-                  </td>
-                  <td>Génère les réponses de l&apos;assistant d&apos;IA.</td>
-                  <td>Les messages que vous envoyez à l&apos;assistant</td>
+                  <td>Les e-mails que vous nous envoyez et nos réponses</td>
                 </tr>
               </tbody>
             </table>
@@ -1167,71 +1203,113 @@ const fr: LegalDocument = {
           <h3>Durées de conservation</h3>
           <ul>
             <li>
-              Votre compte, votre espace de travail, vos comptes connectés et
-              votre contenu : tant que votre compte existe, sauf si vous les
-              supprimez avant.
+              Votre compte, vos espaces de travail, vos comptes connectés et
+              votre contenu sont conservés tant que votre compte existe.
             </li>
             <li>
-              Les publications, médias et canaux que vous supprimez sont
-              immédiatement masqués dans le Service, mais restent dans la base
-              de données (et les fichiers téléversés sur le serveur)
-              jusqu&apos;à leur effacement :{' '}
+              Le Service ne purge pas les données automatiquement. Les
+              publications, médias, canaux et comptes supprimés sont masqués ou
+              pseudonymisés (voir ci-dessous) mais restent dans la base de
+              données, et les fichiers téléversés restent sur le serveur,
+              jusqu&apos;à ce que nous les effacions à votre demande. Durée
+              maximale avant effacement automatique :{' '}
               <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
             </li>
             <li>
-              Sauvegardes : avant chaque mise à jour du logiciel, nous
-              effectuons une sauvegarde complète de la base de données. Les 7
-              sauvegardes les plus récentes sont conservées sur le serveur et
-              les plus anciennes sont supprimées automatiquement.
-            </li>
-            <li>
-              Journaux du serveur et de l&apos;application :{' '}
+              Sauvegardes : une copie complète de la base de données est
+              réalisée avant chaque mise à jour du logiciel (et non selon un
+              calendrier fixe). Les 7 copies les plus récentes sont conservées
+              sur le serveur et les plus anciennes sont supprimées
+              automatiquement : une copie est donc conservée jusqu&apos;à ce que
+              sept mises à jour plus récentes aient été effectuées. Les
+              sauvegardes contiennent toutes les données présentes dans la base
+              à ce moment-là, y compris les éléments supprimés et les jetons
+              d&apos;accès. Ancienneté maximale des sauvegardes :{' '}
               <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
             </li>
             <li>
-              E-mails d&apos;assistance :{' '}
-              <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
+              Journaux du proxy (adresse IP, type de navigateur, adresse
+              demandée et heure) : rotation chaque semaine ; les journaux
+              d&apos;accès sont conservés environ cinq semaines et les journaux
+              d&apos;erreurs environ onze semaines.
+            </li>
+            <li>
+              Les journaux de l&apos;application sont supprimés à chaque
+              redéploiement de l&apos;application, c&apos;est-à-dire à chaque
+              mise à jour du logiciel ; il n&apos;y a pas de durée fixe.
+            </li>
+            <li>
+              Les e-mails d&apos;assistance sont conservés dans notre boîte de
+              réception : <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
             </li>
           </ul>
           <h3>Supprimer votre compte</h3>
           <p>
             Vous pouvez supprimer votre compte à tout moment dans{' '}
             <strong>Paramètres › Delete your account</strong> (ce libellé
-            s&apos;affiche en anglais). Dans ce cas :
+            s&apos;affiche en anglais). Avant cela, révoquez les assistants
+            d&apos;IA et applications que vous avez autorisés dans{' '}
+            <strong>Paramètres › Apps › Approved Apps</strong>, et retirez
+            l&apos;accès de Tayra Social sur chaque plateforme (voir la section
+            suivante) : la suppression du compte ne le fait pas pour vous. Lors
+            de la suppression de votre compte :
           </p>
           <ul>
             <li>
               votre adresse e-mail, vos nom et prénom et votre identifiant de
-              connexion externe sont remplacés par des empreintes irréversibles,
-              et votre mot de passe, votre biographie, votre photo de profil,
-              votre adresse IP et votre type de navigateur sont supprimés ;
+              connexion externe sont remplacés par des empreintes MD5, et votre
+              mot de passe, votre biographie, le lien vers votre photo de
+              profil, votre adresse IP et votre type de navigateur sont
+              supprimés. Il s&apos;agit d&apos;une pseudonymisation, et non
+              d&apos;une anonymisation : une personne connaissant déjà votre
+              adresse e-mail pourrait la rapprocher de son empreinte. Votre
+              fuseau horaire, vos préférences de notifications, la date de votre
+              dernière activité et la date de création du compte restent
+              associés à l&apos;enregistrement pseudonymisé ;
             </li>
             <li>
-              les espaces de travail dont vous êtes le seul membre sont fermés :
-              les jetons, noms et profils de leurs comptes connectés sont
-              remplacés par des empreintes irréversibles, de sorte qu&apos;ils
-              ne peuvent plus être utilisés, et leurs publications sont marquées
+              chaque espace de travail dont vous êtes le seul super
+              administrateur est fermé, même s&apos;il compte d&apos;autres
+              membres, qui en perdent alors l&apos;accès. Dans un espace fermé,
+              les jetons, noms, identifiants et profils des comptes connectés
+              sont remplacés par des empreintes MD5, de sorte que les jetons ne
+              peuvent plus être utilisés, et les publications sont marquées
               comme supprimées ;
             </li>
             <li>
-              vous êtes retiré des espaces de travail partagés avec
-              d&apos;autres membres, qui conservent leur contenu.
+              dans un espace de travail qui compte un autre super
+              administrateur, vous en êtes seulement retiré ; l&apos;espace et
+              son contenu sont conservés.
             </li>
           </ul>
           <p>
-            Pour faire effacer toutes les données restantes, y compris les
-            publications supprimées et les fichiers téléversés, écrivez-nous à{' '}
-            <ContactEmail /> depuis l&apos;adresse de votre compte. Nous vous
-            confirmerons la fin de la suppression. Les données présentes dans
-            les sauvegardes sont supprimées lorsque ces sauvegardes sont
-            remplacées.
+            Après la suppression, les éléments suivants restent dans la base de
+            données (et les fichiers sur le serveur) jusqu&apos;à ce que nous
+            les effacions à votre demande : le contenu des publications marquées
+            comme supprimées, les médias téléversés et leurs fichiers, les
+            commentaires que vous avez rédigés, les paramètres des espaces
+            fermés (nom, clé d&apos;API, webhooks, signatures, sources RSS, clés
+            des outils tiers), les enregistrements d&apos;erreurs (qui peuvent
+            contenir le contenu de publications), les notifications, et les
+            autorisations accordées aux assistants d&apos;IA et applications.
+          </p>
+          <h3>Effacement définitif et copie de vos données</h3>
+          <p>
+            Le Service ne propose ni export de données ni effacement définitif
+            en libre-service. Pour recevoir une copie de vos données, ou faire
+            effacer toutes les données restantes, y compris les publications
+            supprimées et les fichiers téléversés, écrivez-nous à{' '}
+            <ContactEmail /> depuis l&apos;adresse de votre compte. Ces demandes
+            sont traitées manuellement et nous vous confirmerons leur
+            réalisation. Les données présentes dans les sauvegardes sont
+            supprimées avec ces sauvegardes, comme indiqué ci-dessus.
           </p>
           <h3>Supprimer les données reçues de Facebook, Instagram ou TikTok</h3>
           <p>
             Pour supprimer les données que nous détenons sur un compte Facebook,
-            Instagram ou TikTok connecté : supprimez le canal dans Tayra Social
-            (voir la section suivante), retirez l&apos;accès de Tayra Social
-            dans les paramètres de la plateforme, et écrivez à <ContactEmail />{' '}
+            Instagram ou TikTok connecté : supprimez le canal dans Tayra Social,
+            retirez l&apos;accès de Tayra Social dans les paramètres de la
+            plateforme (voir la section suivante), et écrivez à <ContactEmail />{' '}
             pour faire effacer les données conservées.
           </p>
         </>
@@ -1246,16 +1324,22 @@ const fr: LegalDocument = {
             <strong>Dans Tayra Social :</strong> ouvrez le menu du canal dans la
             liste des canaux et choisissez <strong>Supprimer</strong> (vous
             pouvez aussi choisir <strong>Désactiver le canal</strong> pour le
-            mettre en pause). Un canal supprimé n&apos;est plus utilisé : rien
-            n&apos;y est publié et aucune donnée n&apos;en est récupérée. Ses
-            jetons restent dans notre base de données jusqu&apos;à la
-            suppression de votre compte ou jusqu&apos;à ce que vous nous
-            demandiez de les effacer.
+            mettre en pause). Le canal est marqué comme supprimé : rien n&apos;y
+            est publié, son accès n&apos;est plus renouvelé, aucune donnée
+            n&apos;en est récupérée, et ses publications sont également marquées
+            comme supprimées. Ses jetons restent dans notre base de données
+            jusqu&apos;à la suppression de votre compte ou jusqu&apos;à ce que
+            vous nous demandiez de les effacer.
           </p>
           <p>
-            <strong>Sur la plateforme :</strong> la révocation de l&apos;accès
-            rend immédiatement les jetons conservés inutilisables. Le nom des
-            menus peut varier selon la version de l&apos;application.
+            <strong>
+              La suppression d&apos;un canal ne révoque pas l&apos;accès accordé
+              sur la plateforme.
+            </strong>{' '}
+            Pour le révoquer, retirez Tayra Social dans les paramètres de la
+            plateforme. Une fois l&apos;accès révoqué, les jetons conservés
+            cessent immédiatement de fonctionner. Le nom des menus peut varier
+            selon la version de l&apos;application.
           </p>
           <ul>
             <li>
@@ -1298,10 +1382,9 @@ const fr: LegalDocument = {
           <p>
             Pour exercer vos droits, écrivez à <ContactEmail /> depuis
             l&apos;adresse de votre compte, ou joignez les informations
-            permettant de vérifier votre identité. Le Service ne propose pas
-            d&apos;export de données en libre-service ; nous fournissons une
-            copie de vos données sur demande. Nous répondons dans les délais
-            prévus par la loi applicable.
+            permettant de vérifier votre identité. Les demandes sont traitées
+            manuellement. Nous répondons dans les délais prévus par la loi
+            applicable.
           </p>
           <p>
             Si vous estimez que vos droits ne sont pas respectés, vous pouvez
@@ -1327,7 +1410,8 @@ const fr: LegalDocument = {
               value={LEGAL.hostingLocation}
               id="HOSTING_LOCATION_TO_VERIFY"
             />
-            . Cloudflare achemine le trafic via son réseau mondial, et les
+            . Cloudflare achemine le trafic via son réseau mondial, Google
+            héberge notre boîte de réception d&apos;assistance, et les
             plateformes que vous connectez (Meta, TikTok) traitent les données
             dans les pays où elles opèrent. Vos données peuvent donc être
             transférées et traitées dans des pays autres que le Maroc.
