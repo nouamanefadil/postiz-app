@@ -46,7 +46,7 @@ Where to fill things in:
 | 4 | ~~`[ICE_NUMBER_IF_APPLICABLE]`~~ | `ice` | Done: the operator has none (2026-11-19); line removed from `OperatorDetails` |
 | 5 | ~~`[IF_NUMBER_IF_APPLICABLE]`~~ | `taxId` | Done: the operator has none (2026-11-19); line removed from `OperatorDetails` |
 | 6 | ~~`[SUPPORT_PHONE_TO_CONFIRM]`~~ | `phone` | Done: +212 6 63 29 05 59 (operator, 2026-11-19) |
-| 7 | `[HOSTING_LOCATION_TO_VERIFY]` | `hostingLocation` | Country (and city) of the Hostinger data centre: hPanel › VPS › Overview (the Hostinger API token in use does not list this VPS). English and French share this value |
+| 7 | ~~`[HOSTING_LOCATION_TO_VERIFY]`~~ | `hostingLocation` | Done: Paris, France (operator, 2026-11-19) |
 | 8 | `[CNDP_FORMALITIES_TO_VERIFY]` | `cndp` | Reference of the CNDP declaration or authorisation (receipt number and date) once obtained. Do not fill in before the formality is done |
 | 9 | `[COMPETENT_COURT_TO_CONFIRM]` | `court` | Competent courts for disputes, to choose with a lawyer |
 
@@ -59,7 +59,7 @@ Set `draft: false` and update `lastUpdated` only when all items are resolved.
 | 10 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", 1st bullet | Maximum time before deleted posts, media, channels and accounts are erased automatically. Needs a purge job first; until then, keep the text that says nothing is purged automatically |
 | 11 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", backups bullet | Maximum age of pre-deployment backups (today only the "7 most recent" rule applies, with no time limit) |
 | 12 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", support emails bullet | How long support emails are kept in the Gmail mailbox |
-| 13 | `[CNDP_FORMALITIES_TO_VERIFY]` | "International data transfers" | How transfers outside Morocco (Hostinger data centre if abroad, Cloudflare, Google, Meta, TikTok) are covered under Law 09-08 |
+| 13 | `[CNDP_FORMALITIES_TO_VERIFY]` | "International data transfers" | How transfers outside Morocco (Hostinger data centre in Paris, France; Cloudflare, Google, Meta, TikTok) are covered under Law 09-08 |
 
 ## C. Points for legal review
 

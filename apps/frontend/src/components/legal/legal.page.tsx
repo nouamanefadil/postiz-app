@@ -21,8 +21,8 @@ export const LEGAL = {
   address: 'Bassatine Al Firdaouss, GH1, Imm 5, Mag 24, Mohammedia, Morocco',
   // Confirmed by the operator (2026-11-19)
   phone: '+212 6 63 29 05 59',
-  // To verify: country of the Hostinger data centre (hPanel > VPS > Overview)
-  hostingLocation: '',
+  // Confirmed by the operator (2026-11-19): Hostinger data centre in Paris
+  hostingLocation: 'Paris, France',
   // To verify: CNDP declaration / authorisation reference, once obtained
   cndp: '',
   // To confirm: competent courts for disputes
@@ -132,7 +132,7 @@ const UI = {
     privacy: 'Privacy',
     signIn: 'Sign in',
     draft:
-      'Draft: information shown in brackets, such as [HOSTING_LOCATION_TO_VERIFY], is still being confirmed.',
+      'Draft: information shown in brackets, such as [DATA_RETENTION_PERIOD_TO_CONFIRM], is still being confirmed.',
   },
   fr: {
     contents: 'Sommaire',
@@ -141,7 +141,7 @@ const UI = {
     privacy: 'Confidentialité',
     signIn: 'Connexion',
     draft:
-      'Version provisoire : les informations entre crochets, comme [HOSTING_LOCATION_TO_VERIFY], sont en cours de confirmation.',
+      'Version provisoire : les informations entre crochets, comme [DATA_RETENTION_PERIOD_TO_CONFIRM], sont en cours de confirmation.',
   },
 };
 
