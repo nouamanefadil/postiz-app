@@ -58,7 +58,7 @@ Set `draft: false` and update `lastUpdated` only when all items are resolved.
 | --- | --- | --- | --- |
 | 10 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", 1st bullet | Maximum time before deleted posts, media, channels and accounts are erased automatically. Needs a purge job first; until then, keep the text that says nothing is purged automatically. Target chosen: 90 days (operator, 2026-11-19); not shown on the page until the purge job ships, so the token stays |
 | 11 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", backups bullet | Maximum age of pre-deployment backups (today only the "7 most recent" rule applies, with no time limit). Target chosen: 90 days (operator, 2026-11-19); needs an automatic cleanup on the VPS before the page can say it, so the token stays |
-| 12 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", support emails bullet | How long support emails are kept in the Gmail mailbox |
+| 12 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", support emails bullet | ~~How long support emails are kept in the Gmail mailbox~~ Done: until the request is resolved, then deleted within 90 days, by hand (operator, 2026-11-19) |
 | 13 | `[CNDP_FORMALITIES_TO_VERIFY]` | "International data transfers" | How transfers outside Morocco (Hostinger data centre in Paris, France; Cloudflare, Google, Meta, TikTok) are covered under Law 09-08 |
 
 ## C. Points for legal review

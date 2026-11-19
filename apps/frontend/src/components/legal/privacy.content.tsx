@@ -635,8 +635,8 @@ const en: LegalDocument = {
               fixed period.
             </li>
             <li>
-              Support emails are kept in our mailbox:{' '}
-              <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
+              Support emails are kept in our mailbox until your request is
+              resolved, then deleted within 90 days.
             </li>
           </ul>
           <h3>Deleting your account</h3>
@@ -1276,7 +1276,8 @@ const fr: LegalDocument = {
             </li>
             <li>
               Les e-mails d&apos;assistance sont conservés dans notre boîte de
-              réception : <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
+              réception jusqu&apos;au traitement de votre demande, puis
+              supprimés dans un délai de 90 jours.
             </li>
           </ul>
           <h3>Supprimer votre compte</h3>
