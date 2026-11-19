@@ -127,6 +127,30 @@ const cookies: {
     duration: { en: '7 days', fr: '7 jours' },
   },
   {
+    name: 'mode',
+    purpose: {
+      en: 'Remembers whether you chose the light or dark theme.',
+      fr: 'Mémorise le thème clair ou sombre choisi.',
+    },
+    duration: { en: '7 days', fr: '7 jours' },
+  },
+  {
+    name: 'collapseMenu',
+    purpose: {
+      en: 'Remembers whether the side menu is collapsed.',
+      fr: 'Mémorise si le menu latéral est replié.',
+    },
+    duration: { en: '7 days', fr: '7 jours' },
+  },
+  {
+    name: 'calendar-display',
+    purpose: {
+      en: 'Remembers the calendar view you chose (day, week, month).',
+      fr: 'Mémorise la vue du calendrier choisie (jour, semaine, mois).',
+    },
+    duration: { en: '7 days', fr: '7 jours' },
+  },
+  {
     name: 'oauth_state',
     purpose: {
       en: 'Protects sign-in with an external provider against forged requests.',
@@ -448,9 +472,9 @@ const en: LegalDocument = {
           </li>
           <li>
             Deleting a channel in Tayra Social does not revoke the access you
-            granted on the platform. Revoking access in the platform&apos;s
-            settings makes the stored tokens unusable immediately (see{' '}
-            <a href="#disconnect">Disconnecting accounts</a>).
+            granted on the platform. Once you revoke access in the
+            platform&apos;s settings, the platform no longer accepts the stored
+            tokens (see <a href="#disconnect">Disconnecting accounts</a>).
           </li>
         </ul>
       ),
@@ -638,10 +662,10 @@ const en: LegalDocument = {
             <li>
               every workspace in which you are the only super administrator is
               closed, even if it has other members, and those members lose
-              access to it. In a closed workspace, the tokens, names,
-              identifiers and profiles of the connected accounts are replaced by
-              MD5 hashes so the tokens can no longer be used, and the posts are
-              marked as deleted;
+              access to it. In a closed workspace, the access and refresh
+              tokens, names, identifiers and profiles of the connected accounts
+              are replaced by MD5 hashes so the tokens can no longer be used,
+              and the posts are marked as deleted;
             </li>
             <li>
               in a workspace that has another super administrator, you are only
@@ -656,6 +680,15 @@ const en: LegalDocument = {
             webhooks, signatures, RSS sources, keys of third-party tools), error
             records (which can contain post content), notifications, and the
             authorisations given to AI assistants and applications.
+          </p>
+          <p>
+            <strong>
+              Authorisations you gave to AI assistants and applications are not
+              cancelled when you delete your account: they keep working, and can
+              still access the workspaces concerned, until you revoke them.
+            </strong>{' '}
+            Revoke them before deleting your account, or email <ContactEmail />{' '}
+            to have them revoked.
           </p>
           <h3>Permanent erasure and copies of your data</h3>
           <p>
@@ -688,8 +721,9 @@ const en: LegalDocument = {
             choose <strong>Disable Channel</strong> to pause it). The channel is
             marked as deleted: nothing is published to it, its access is no
             longer renewed and no data is retrieved from it, and its posts are
-            also marked as deleted. Its stored tokens remain in our database
-            until you delete your account or ask us to erase them.
+            also marked as deleted (a post scheduled on several channels is
+            deleted on all of them). Its stored tokens remain in our database
+            until we erase them at your request.
           </p>
           <p>
             <strong>
@@ -697,8 +731,8 @@ const en: LegalDocument = {
               platform.
             </strong>{' '}
             To revoke it, remove Tayra Social in the platform&apos;s settings.
-            Once revoked, the stored tokens stop working immediately. Menu names
-            can vary between app versions.
+            Once revoked, the platform no longer accepts the stored tokens. Menu
+            names can vary between app versions.
           </p>
           <ul>
             <li>
@@ -1052,9 +1086,9 @@ const fr: LegalDocument = {
           </li>
           <li>
             La suppression d&apos;un canal dans Tayra Social ne révoque pas
-            l&apos;accès accordé sur la plateforme. La révocation de
-            l&apos;accès dans les paramètres de la plateforme rend immédiatement
-            les jetons conservés inutilisables (voir{' '}
+            l&apos;accès accordé sur la plateforme. Une fois l&apos;accès
+            révoqué dans les paramètres de la plateforme, celle-ci
+            n&apos;accepte plus les jetons conservés (voir{' '}
             <a href="#disconnect">Déconnexion des comptes</a>).
           </li>
         </ul>
@@ -1271,10 +1305,10 @@ const fr: LegalDocument = {
               chaque espace de travail dont vous êtes le seul super
               administrateur est fermé, même s&apos;il compte d&apos;autres
               membres, qui en perdent alors l&apos;accès. Dans un espace fermé,
-              les jetons, noms, identifiants et profils des comptes connectés
-              sont remplacés par des empreintes MD5, de sorte que les jetons ne
-              peuvent plus être utilisés, et les publications sont marquées
-              comme supprimées ;
+              les jetons d&apos;accès et de renouvellement, noms, identifiants
+              et profils des comptes connectés sont remplacés par des empreintes
+              MD5, de sorte que les jetons ne peuvent plus être utilisés, et les
+              publications sont marquées comme supprimées ;
             </li>
             <li>
               dans un espace de travail qui compte un autre super
@@ -1292,6 +1326,16 @@ const fr: LegalDocument = {
             des outils tiers), les enregistrements d&apos;erreurs (qui peuvent
             contenir le contenu de publications), les notifications, et les
             autorisations accordées aux assistants d&apos;IA et applications.
+          </p>
+          <p>
+            <strong>
+              Les autorisations accordées aux assistants d&apos;IA et aux
+              applications ne sont pas annulées par la suppression du compte :
+              elles restent valables, et donnent toujours accès aux espaces de
+              travail concernés, jusqu&apos;à ce que vous les révoquiez.
+            </strong>{' '}
+            Révoquez-les avant de supprimer votre compte, ou écrivez à{' '}
+            <ContactEmail /> pour les faire révoquer.
           </p>
           <h3>Effacement définitif et copie de vos données</h3>
           <p>
@@ -1327,9 +1371,9 @@ const fr: LegalDocument = {
             mettre en pause). Le canal est marqué comme supprimé : rien n&apos;y
             est publié, son accès n&apos;est plus renouvelé, aucune donnée
             n&apos;en est récupérée, et ses publications sont également marquées
-            comme supprimées. Ses jetons restent dans notre base de données
-            jusqu&apos;à la suppression de votre compte ou jusqu&apos;à ce que
-            vous nous demandiez de les effacer.
+            comme supprimées (une publication programmée sur plusieurs canaux
+            est supprimée sur tous). Ses jetons restent dans notre base de
+            données jusqu&apos;à ce que nous les effacions à votre demande.
           </p>
           <p>
             <strong>
@@ -1337,9 +1381,9 @@ const fr: LegalDocument = {
               sur la plateforme.
             </strong>{' '}
             Pour le révoquer, retirez Tayra Social dans les paramètres de la
-            plateforme. Une fois l&apos;accès révoqué, les jetons conservés
-            cessent immédiatement de fonctionner. Le nom des menus peut varier
-            selon la version de l&apos;application.
+            plateforme. Une fois l&apos;accès révoqué, la plateforme
+            n&apos;accepte plus les jetons conservés. Le nom des menus peut
+            varier selon la version de l&apos;application.
           </p>
           <ul>
             <li>

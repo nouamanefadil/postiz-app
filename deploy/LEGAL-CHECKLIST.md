@@ -33,6 +33,8 @@ Where to fill things in:
 | Proxy logs | Weekly rotation: access logs ~5 weeks, error logs ~11 weeks | Production (Nginx Proxy Manager logrotate) |
 | Application logs | Removed when the container is recreated (each deploy) | Production |
 | Automatic purge | None: deleted data stays until erased manually | Code audit |
+| Analytics / tracking | None enabled: no Plausible, Dub, GTM, Meta pixel, Sentry, ChatBase, billing or attribution tool (each loads only when its env variable is set) | Live page config (2026-11-19) |
+| AI app / MCP authorisations | Not revoked on account deletion: they keep working until revoked (Settings › Apps › Approved Apps) | Code (`oauth.repository.ts` `findByAccessToken`) |
 
 ## A. Operator details (`LEGAL` in legal.page.tsx)
 
