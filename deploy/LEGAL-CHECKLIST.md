@@ -45,7 +45,7 @@ Where to fill things in:
 | 3 | ~~`[RC_NUMBER_IF_APPLICABLE]`~~ | `rc` | Done: the operator has none (2026-11-19); line removed from `OperatorDetails` |
 | 4 | ~~`[ICE_NUMBER_IF_APPLICABLE]`~~ | `ice` | Done: the operator has none (2026-11-19); line removed from `OperatorDetails` |
 | 5 | ~~`[IF_NUMBER_IF_APPLICABLE]`~~ | `taxId` | Done: the operator has none (2026-11-19); line removed from `OperatorDetails` |
-| 6 | `[SUPPORT_PHONE_TO_CONFIRM]` | `phone` | Support phone number, or decide to remove the phone lines |
+| 6 | ~~`[SUPPORT_PHONE_TO_CONFIRM]`~~ | `phone` | Done: +212 6 63 29 05 59 (operator, 2026-11-19) |
 | 7 | `[HOSTING_LOCATION_TO_VERIFY]` | `hostingLocation` | Country (and city) of the Hostinger data centre: hPanel › VPS › Overview (the Hostinger API token in use does not list this VPS). English and French share this value |
 | 8 | `[CNDP_FORMALITIES_TO_VERIFY]` | `cndp` | Reference of the CNDP declaration or authorisation (receipt number and date) once obtained. Do not fill in before the formality is done |
 | 9 | `[COMPETENT_COURT_TO_CONFIRM]` | `court` | Competent courts for disputes, to choose with a lawyer |

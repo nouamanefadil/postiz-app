@@ -19,8 +19,8 @@ export const LEGAL = {
   operatorName: 'Nouamane Fadil',
   // Confirmed by the operator (2026-11-19)
   address: 'Bassatine Al Firdaouss, GH1, Imm 5, Mag 24, Mohammedia, Morocco',
-  // To confirm: support phone number (optional)
-  phone: '',
+  // Confirmed by the operator (2026-11-19)
+  phone: '+212 6 63 29 05 59',
   // To verify: country of the Hostinger data centre (hPanel > VPS > Overview)
   hostingLocation: '',
   // To verify: CNDP declaration / authorisation reference, once obtained
