@@ -15,8 +15,8 @@ export const LEGAL = {
   // person, not a company) under the trading name Maison Tayra
   tradingName: 'Maison Tayra',
   contactEmail: 'maisontayra@gmail.com',
-  // To confirm: full legal name of the individual who operates the Service
-  operatorName: '',
+  // Confirmed by the operator (2026-11-19)
+  operatorName: 'Nouamane Fadil',
   // Confirmed by the operator (2026-11-19)
   address: 'Bassatine Al Firdaouss, GH1, Imm 5, Mag 24, Mohammedia, Morocco',
   // Moroccan identifiers, only if the operator has them (leave empty otherwise
@@ -148,7 +148,7 @@ const UI = {
     privacy: 'Privacy',
     signIn: 'Sign in',
     draft:
-      'Draft: information shown in brackets, such as [OPERATOR_LEGAL_NAME_TO_CONFIRM], is still being confirmed.',
+      'Draft: information shown in brackets, such as [HOSTING_LOCATION_TO_VERIFY], is still being confirmed.',
   },
   fr: {
     contents: 'Sommaire',
@@ -157,7 +157,7 @@ const UI = {
     privacy: 'Confidentialité',
     signIn: 'Connexion',
     draft:
-      'Version provisoire : les informations entre crochets, comme [OPERATOR_LEGAL_NAME_TO_CONFIRM], sont en cours de confirmation.',
+      'Version provisoire : les informations entre crochets, comme [HOSTING_LOCATION_TO_VERIFY], sont en cours de confirmation.',
   },
 };
 
