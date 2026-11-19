@@ -16,6 +16,7 @@ const DAY = 24 * 60 * 60 * 1000;
 type Tx = Prisma.TransactionClient;
 type Kind = 'organizations' | 'integrations' | 'posts' | 'media' | 'users';
 export type PurgeResult = Record<Kind | 'failed', number> & { dryRun: boolean };
+type Before = { lt: Date };
 
 // Rows that hang off a set of posts and block their deletion
 async function deletePostChildren(tx: Tx, post: Prisma.PostWhereInput) {
@@ -23,6 +24,29 @@ async function deletePostChildren(tx: Tx, post: Prisma.PostWhereInput) {
   await tx.comments.deleteMany({ where: { post } });
   await tx.errors.deleteMany({ where: { post } });
 }
+
+// Locks the row and checks it is still deleted: a channel reconnected (its
+// deletedAt reset) since the run listed it must not be erased
+async function stillDeleted(
+  tx: Tx,
+  table: 'Organization' | 'Integration' | 'Post' | 'User',
+  id: string,
+  deletedAt: Before
+) {
+  const rows = await tx.$queryRawUnsafe<unknown[]>(
+    `SELECT id FROM "${table}" WHERE id = $1 AND "deletedAt" < $2 FOR UPDATE`,
+    id,
+    deletedAt.lt
+  );
+  return rows.length > 0;
+}
+
+// Live posts keep their media in `image`, and some settings (YouTube
+// thumbnail) in `settings`
+const inLivePost = (path: string): Prisma.PostWhereInput => ({
+  deletedAt: null,
+  OR: [{ image: { contains: path } }, { settings: { contains: path } }],
+});
 
 @Injectable()
 export class DataPurgeService {
@@ -45,66 +69,45 @@ export class DataPurgeService {
       failed: 0,
     };
     const ids = (rows: { id: string }[]) => rows.map((r) => r.id);
+    const query = { where: { deletedAt }, select: { id: true }, take: BATCH };
 
     // Closed workspaces first: erasing one erases its channels, posts and media
     const kinds: [
       Kind,
       () => Promise<string[]>,
-      (id: string) => Promise<void>
+      (id: string, deletedAt: Before) => Promise<boolean>
     ][] = [
       [
         'organizations',
-        async () =>
-          ids(
-            await this._prisma.organization.findMany({
-              where: { deletedAt },
-              select: { id: true },
-              take: BATCH,
-            })
-          ),
-        (id) => this.purgeOrganization(id),
+        async () => ids(await this._prisma.organization.findMany(query)),
+        (id, d) => this.purgeOrganization(id, d),
       ],
       [
         'integrations',
-        async () =>
-          ids(
-            await this._prisma.integration.findMany({
-              where: { deletedAt },
-              select: { id: true },
-              take: BATCH,
-            })
-          ),
-        (id) => this.purgeIntegration(id),
+        async () => ids(await this._prisma.integration.findMany(query)),
+        (id, d) => this.purgeIntegration(id, d),
       ],
       [
         'posts',
         async () =>
           ids(
             await this._prisma.post.findMany({
+              ...query,
               // a live comment or thread reply would lose its parent
               where: { deletedAt, childrenPost: { none: { deletedAt: null } } },
-              select: { id: true },
-              take: BATCH,
             })
           ),
-        (id) => this.purgePost(id),
+        (id, d) => this.purgePost(id, d),
       ],
       [
         'media',
         () => this.mediaToPurge(deletedAt),
-        (id) => this.purgeMedia(id),
+        (id, d) => this.purgeMedia(id, d),
       ],
       [
         'users',
-        async () =>
-          ids(
-            await this._prisma.user.findMany({
-              where: { deletedAt },
-              select: { id: true },
-              take: BATCH,
-            })
-          ),
-        (id) => this.purgeUser(id),
+        async () => ids(await this._prisma.user.findMany(query)),
+        (id, d) => this.purgeUser(id, d),
       ],
     ];
 
@@ -115,8 +118,7 @@ export class DataPurgeService {
           continue;
         }
         try {
-          await erase(id);
-          result[kind]++;
+          if (await erase(id, deletedAt)) result[kind]++;
         } catch (err) {
           result.failed++;
           console.error(
@@ -130,7 +132,7 @@ export class DataPurgeService {
 
   // Deleted media still shown somewhere (a live post, a profile picture, an
   // agency logo, an app icon) is kept
-  private async mediaToPurge(deletedAt: { lt: Date }) {
+  private async mediaToPurge(deletedAt: Before) {
     const media = await this._prisma.media.findMany({
       where: {
         deletedAt,
@@ -138,29 +140,44 @@ export class DataPurgeService {
         agencies: { none: {} },
         oauthApps: { none: {} },
       },
-      select: { id: true, path: true },
+      select: { id: true, path: true, thumbnail: true },
       take: BATCH,
     });
     const free: string[] = [];
     for (const m of media) {
+      const paths = [m.path, m.thumbnail].filter((p): p is string => !!p);
       const used = await this._prisma.post.count({
-        where: { deletedAt: null, image: { contains: m.path } },
+        where: { OR: paths.map(inLivePost) },
       });
       if (!used) free.push(m.id);
     }
     return free;
   }
 
-  // Returns false when a file could not be removed (logged). A file that is
-  // already gone, or not in our storage (an external URL), counts as removed.
+  // A file is removed only if it is in our storage and nothing left in the
+  // database points to it: paths and thumbnails can be set by the client, so
+  // two rows (or two workspaces) can name the same file. Returns false when a
+  // removal failed (logged); a file already gone counts as removed.
   private async removeFiles(paths: (string | null | undefined)[]) {
+    const base =
+      process.env.STORAGE_PROVIDER === 'cloudflare'
+        ? process.env.CLOUDFLARE_BUCKET_URL
+        : `${process.env.FRONTEND_URL}/uploads`;
     let ok = true;
-    for (const path of paths) {
-      if (!path) continue;
+    for (const path of new Set(paths)) {
+      if (!path || !base || !path.startsWith(`${base}/`)) continue;
+      const [media, integrations, posts] = await Promise.all([
+        this._prisma.media.count({
+          where: { OR: [{ path }, { thumbnail: path }] },
+        }),
+        this._prisma.integration.count({ where: { picture: path } }),
+        this._prisma.post.count({ where: inLivePost(path) }),
+      ]);
+      if (media || integrations || posts) continue;
       try {
         await this.storage.removeFile(path);
       } catch (err: any) {
-        if (err?.code !== 'ENOENT' && err?.message !== 'Unsafe file path') {
+        if (err?.code !== 'ENOENT') {
           ok = false;
           console.error(`Data purge: file not removed: ${err?.message}`);
         }
@@ -169,30 +186,40 @@ export class DataPurgeService {
     return ok;
   }
 
-  async purgeMedia(id: string) {
+  // Files are removed after the rows, so the "still referenced" check does
+  // not see the rows being erased. A file that could not be removed stays
+  // and is reported in the logs.
+  async purgeMedia(id: string, deletedAt: Before) {
     const media = await this._prisma.media.findUniqueOrThrow({ where: { id } });
-    // files first: if one cannot be removed the row stays and the next run retries
-    if (!(await this.removeFiles([media.path, media.thumbnail]))) {
-      throw new Error('files not removed');
-    }
-    await this._prisma.media.delete({ where: { id } });
+    const { count } = await this._prisma.media.deleteMany({
+      where: { id, deletedAt },
+    });
+    if (!count) return false;
+    await this.removeFiles([media.path, media.thumbnail]);
+    return true;
   }
 
-  async purgePost(id: string) {
-    await this._prisma.$transaction(async (tx) => {
+  async purgePost(id: string, deletedAt: Before) {
+    return this._prisma.$transaction(async (tx) => {
+      if (!(await stillDeleted(tx, 'Post', id, deletedAt))) return false;
       await deletePostChildren(tx, { id });
       // deleted replies keep a null parent and are erased on their own
       await tx.post.delete({ where: { id } });
+      return true;
     });
   }
 
-  async purgeIntegration(id: string) {
+  async purgeIntegration(id: string, deletedAt: Before) {
     const integration = await this._prisma.integration.findUniqueOrThrow({
       where: { id },
       select: { picture: true },
     });
-    await this._prisma.$transaction(
+    const erased = await this._prisma.$transaction(
       async (tx) => {
+        if (!(await stillDeleted(tx, 'Integration', id, deletedAt))) {
+          return false;
+        }
+        // every post of the channel, the channel is gone
         const posts = { integrationId: id };
         await deletePostChildren(tx, posts);
         await tx.post.deleteMany({ where: posts });
@@ -200,24 +227,28 @@ export class DataPurgeService {
         await tx.exisingPlugData.deleteMany({ where: posts });
         await tx.integrationsWebhooks.deleteMany({ where: posts });
         await tx.integration.delete({ where: { id } });
+        return true;
       },
       { timeout: 60_000 }
     );
-    await this.removeFiles([integration.picture]);
+    if (erased) await this.removeFiles([integration.picture]);
+    return erased;
   }
 
-  async purgeUser(id: string) {
-    await this._prisma.$transaction(async (tx) => {
+  async purgeUser(id: string, deletedAt: Before) {
+    return this._prisma.$transaction(async (tx) => {
+      if (!(await stillDeleted(tx, 'User', id, deletedAt))) return false;
       const user = { userId: id };
       await tx.userOrganization.deleteMany({ where: user });
       await tx.itemUser.deleteMany({ where: user });
       await tx.oAuthAuthorization.deleteMany({ where: user });
       // comments the user wrote in other workspaces stay, without the author
       await tx.user.delete({ where: { id } });
+      return true;
     });
   }
 
-  async purgeOrganization(id: string) {
+  async purgeOrganization(id: string, deletedAt: Before) {
     const [media, integrations] = await Promise.all([
       this._prisma.media.findMany({
         where: { organizationId: id },
@@ -229,8 +260,11 @@ export class DataPurgeService {
       }),
     ]);
 
-    await this._prisma.$transaction(
+    const erased = await this._prisma.$transaction(
       async (tx) => {
+        if (!(await stillDeleted(tx, 'Organization', id, deletedAt))) {
+          return false;
+        }
         const org = { organizationId: id };
         const integration = { organizationId: id };
         const posts = { OR: [org, { integration }] };
@@ -269,14 +303,18 @@ export class DataPurgeService {
         await tx.userOrganization.deleteMany({ where: org });
         await tx.media.deleteMany({ where: org });
         await tx.organization.delete({ where: { id } });
+        return true;
       },
       { timeout: 60_000 }
     );
 
     // after the commit: a failed transaction leaves the workspace and its files
-    await this.removeFiles([
-      ...media.flatMap((m) => [m.path, m.thumbnail]),
-      ...integrations.map((i) => i.picture),
-    ]);
+    if (erased) {
+      await this.removeFiles([
+        ...media.flatMap((m) => [m.path, m.thumbnail]),
+        ...integrations.map((i) => i.picture),
+      ]);
+    }
+    return erased;
   }
 }

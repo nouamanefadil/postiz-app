@@ -15,7 +15,12 @@ const { purgeDeletedData } = proxyActivities<PurgeActivity>({
 // what was deleted more than 90 days ago (see DataPurgeService).
 export async function purgeDeletedWorkflow() {
   for (let day = 0; day < 30; day++) {
-    await purgeDeletedData();
+    try {
+      await purgeDeletedData();
+    } catch (err) {
+      // retries exhausted (database down...): try again tomorrow instead of
+      // ending the workflow until the next backend restart
+    }
     await sleep('1 day');
   }
   // keeps the history small

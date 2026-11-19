@@ -21,7 +21,16 @@ process.env.FRONTEND_URL = 'https://social.example.test';
 const prisma = new PrismaService();
 const service = new DataPurgeService(prisma);
 const uploads = mkdtempSync(join(tmpdir(), 'purge-'));
-service.storage = new LocalStorage(uploads);
+const local = new LocalStorage(uploads);
+// records every removal, so the test also catches paths that must never
+// reach the storage (another bucket or host: Cloudflare ignores the host)
+const removed: string[] = [];
+service.storage = {
+  removeFile: (path: string) => {
+    removed.push(path);
+    return local.removeFile(path);
+  },
+} as any;
 
 const DAY = 24 * 60 * 60 * 1000;
 const OLD = new Date(Date.now() - 91 * DAY);
@@ -68,7 +77,7 @@ async function post(
   organizationId: string,
   integrationId: string,
   deletedAt: Date | null = null,
-  extra: { parentPostId?: string; image?: string } = {}
+  extra: { parentPostId?: string; image?: string; settings?: string } = {}
 ) {
   const p = await prisma.post.create({
     data: {
@@ -174,6 +183,32 @@ const exists = async (model: any, rowId: string) =>
     image: JSON.stringify([{ id: usedMedia.id, path: usedMedia.path }]),
   });
   const recentMedia = await media(live.id, 'recent.png', RECENT);
+  // media used only in a live post's settings (YouTube thumbnail)
+  const settingsMedia = await media(live.id, 'settings.png', OLD);
+  await post(live.id, channel.id, null, {
+    settings: JSON.stringify({ thumbnail: { path: settingsMedia.path } }),
+  });
+  // paths and thumbnails can be set by the client: a deleted row naming
+  // another workspace's file, or an external URL, must not remove it
+  const other = await org();
+  const otherMedia = await media(other.id, 'other.png', null);
+  const sameFile = await prisma.media.create({
+    data: {
+      organizationId: live.id,
+      name: 'dup',
+      path: otherMedia.path,
+      thumbnail: otherMedia.path,
+      deletedAt: OLD,
+    },
+  });
+  const external = await prisma.media.create({
+    data: {
+      organizationId: live.id,
+      name: 'ext',
+      path: 'https://elsewhere.test/x.png',
+      deletedAt: OLD,
+    },
+  });
 
   const deletedUser = await user(OLD);
   await prisma.userOrganization.create({
@@ -196,7 +231,7 @@ const exists = async (model: any, rowId: string) =>
     organizations: 1,
     integrations: 1,
     posts: 1, // oldParent has a live reply
-    media: 1, // usedMedia is in a live post
+    media: 3, // oldMedia, sameFile, external; usedMedia and settingsMedia are in live posts
     users: 1,
     failed: 0,
   });
@@ -254,6 +289,25 @@ const exists = async (model: any, rowId: string) =>
     await prisma.comments.count({ where: { postId: livePost.id } }),
     2
   );
+
+  assert.ok(!(await exists(prisma.media, sameFile.id)));
+  assert.ok(!(await exists(prisma.media, external.id)));
+  assert.ok(!removed.includes(external.path));
+  assert.ok(!removed.includes(otherMedia.path));
+  assert.ok((await exists(prisma.media, otherMedia.id)) && onDisk('other.png'));
+  assert.ok(
+    (await exists(prisma.media, settingsMedia.id)) && onDisk('settings.png')
+  );
+
+  // A row no longer deleted (a channel reconnected after the run listed it)
+  // is not erased
+  const cutoff = { lt: new Date() };
+  assert.equal(await service.purgeIntegration(channel.id, cutoff), false);
+  assert.equal(await service.purgeOrganization(live.id, cutoff), false);
+  assert.equal(await service.purgePost(livePost.id, cutoff), false);
+  assert.equal(await service.purgeUser(owner.id, cutoff), false);
+  assert.ok(await exists(prisma.integration, channel.id));
+  assert.ok(await exists(prisma.post, livePost.id));
 
   // Nothing left to do
   const again = await service.purge(false);
