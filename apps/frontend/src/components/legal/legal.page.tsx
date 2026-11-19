@@ -1,42 +1,114 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { LogoTextComponent } from '@gitroom/frontend/components/ui/logo-text.component';
 import { SourceCodeNotice } from '@gitroom/frontend/components/layout/source.code.notice';
 import { PRIVACY_URL, TERMS_URL } from '@gitroom/helpers/utils/brand';
 
 // Tayra Social: the business details the Terms and the Privacy Policy need.
-// Every empty value is shown on the pages as a highlighted "To complete"
-// placeholder, so nothing is published as if it were known. Fill them in here.
+// An empty value is shown on the pages as a highlighted [TOKEN] placeholder, so
+// nothing unconfirmed is published as a fact. The full list of what is still
+// missing (including placeholders inside the page text) is in
+// deploy/LEGAL-CHECKLIST.md.
 export const LEGAL = {
-  // Legal name (and legal form) of the business that runs Tayra Social
-  operator: '',
-  // Registered address of that business
+  // Confirmed by the operator
+  tradingName: 'Maison Tayra',
+  contactEmail: 'maisontayra@gmail.com',
+  // To confirm: registered legal name of the business and its legal form
+  legalEntity: '',
+  legalForm: '',
+  // To confirm: registered or business address
   address: '',
-  // Email address for privacy, deletion and support requests
-  contactEmail: '',
-  // Law that governs the Terms, and the competent courts
-  governingLaw: '',
-  // Country of the Hostinger data centre that hosts the server
+  // Moroccan registration numbers, if applicable
+  rc: '',
+  ice: '',
+  taxId: '',
+  // To confirm: support phone number (optional)
+  phone: '',
+  // To verify: country of the Hostinger data centre (hPanel > VPS > Overview)
   hostingLocation: '',
-  lastUpdated: '18 November 2026',
+  // To verify: CNDP declaration / authorisation reference, once obtained
+  cndp: '',
+  // To confirm: competent courts for disputes
+  court: '',
+  // Set to false only once every placeholder is resolved and the text reviewed
+  draft: true,
+  lastUpdated: { en: '19 November 2026', fr: '19 novembre 2026' },
 };
 
+export type LegalLang = 'en' | 'fr';
+
+// ?lang=en|fr wins, then the interface language cookie (French interface ->
+// French text), else English. Arabic and the other interfaces read English.
+export const legalLang = async (
+  searchParams: Promise<{ lang?: string }>
+): Promise<LegalLang> => {
+  const { lang } = await searchParams;
+  if (lang === 'en' || lang === 'fr') {
+    return lang;
+  }
+  return (await cookies()).get('i18next')?.value === 'fr' ? 'fr' : 'en';
+};
+
+// Keeps the chosen language on links between the two legal pages
+export const legalHref = (lang: LegalLang, url: string, hash = '') =>
+  `${url}${lang === 'fr' ? '?lang=fr' : ''}${hash}`;
+
 // A missing business detail or a fact still to be confirmed by the operator
-export const Todo = ({ children }: { children: ReactNode }) => (
+export const Todo = ({ id }: { id: string }) => (
   <mark className="rounded-[4px] bg-[#C9A753]/15 px-[6px] py-[1px] text-[#E5C97A] ring-1 ring-[#C9A753]/40">
-    [To complete: {children}]
+    [{id}]
   </mark>
 );
 
-export const Detail = ({ value, label }: { value: string; label: string }) =>
-  value ? <>{value}</> : <Todo>{label}</Todo>;
+export const Detail = ({ value, id }: { value: string; id: string }) =>
+  value ? <>{value}</> : <Todo id={id} />;
 
-export const ContactEmail = () =>
-  LEGAL.contactEmail ? (
-    <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>
-  ) : (
-    <Todo>contact email address</Todo>
+export const ContactEmail = () => (
+  <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>
+);
+
+// The operator's identity, shown in the contact section of both pages
+export const OperatorDetails = ({ lang }: { lang: LegalLang }) => {
+  const fr = lang === 'fr';
+  return (
+    <ul>
+      <li>
+        {fr ? 'Nom commercial' : 'Trading name'}: {LEGAL.tradingName}
+      </li>
+      <li>
+        {fr ? 'Dénomination légale' : 'Legal name'}:{' '}
+        <Detail value={LEGAL.legalEntity} id="LEGAL_ENTITY_NAME_TO_CONFIRM" />
+      </li>
+      <li>
+        {fr ? 'Forme juridique' : 'Legal form'}:{' '}
+        <Detail value={LEGAL.legalForm} id="LEGAL_FORM_TO_CONFIRM" />
+      </li>
+      <li>
+        {fr ? 'Adresse' : 'Address'}:{' '}
+        <Detail value={LEGAL.address} id="LEGAL_BUSINESS_ADDRESS_TO_CONFIRM" />
+      </li>
+      <li>
+        {fr ? 'Registre du commerce (RC)' : 'Trade register (RC)'}:{' '}
+        <Detail value={LEGAL.rc} id="RC_NUMBER_IF_APPLICABLE" />
+      </li>
+      <li>
+        ICE: <Detail value={LEGAL.ice} id="ICE_NUMBER_IF_APPLICABLE" />
+      </li>
+      <li>
+        {fr ? 'Identifiant fiscal (IF)' : 'Tax identifier (IF)'}:{' '}
+        <Detail value={LEGAL.taxId} id="IF_NUMBER_IF_APPLICABLE" />
+      </li>
+      <li>
+        {fr ? 'E-mail' : 'Email'}: <ContactEmail />
+      </li>
+      <li>
+        {fr ? 'Téléphone' : 'Phone'}:{' '}
+        <Detail value={LEGAL.phone} id="SUPPORT_PHONE_TO_CONFIRM" />
+      </li>
+    </ul>
   );
+};
 
 export interface LegalSection {
   id: string;
@@ -44,61 +116,124 @@ export interface LegalSection {
   body: ReactNode;
 }
 
-// Public page (no login, see proxy.ts) in the colours of the sign-in pages
-export const LegalPage = ({
-  title,
-  intro,
-  sections,
-}: {
+export interface LegalDocument {
   title: string;
+  description: string;
   intro: ReactNode;
   sections: LegalSection[];
+}
+
+const UI = {
+  en: {
+    contents: 'Contents',
+    updated: 'Last updated:',
+    terms: 'Terms',
+    privacy: 'Privacy',
+    signIn: 'Sign in',
+    draft:
+      'Draft: information shown in brackets, such as [LEGAL_ENTITY_NAME_TO_CONFIRM], is still being confirmed.',
+  },
+  fr: {
+    contents: 'Sommaire',
+    updated: 'Dernière mise à jour :',
+    terms: 'Conditions',
+    privacy: 'Confidentialité',
+    signIn: 'Connexion',
+    draft:
+      'Version provisoire : les informations entre crochets, comme [LEGAL_ENTITY_NAME_TO_CONFIRM], sont en cours de confirmation.',
+  },
+};
+
+const LANGUAGES: { lang: LegalLang; label: string }[] = [
+  { lang: 'en', label: 'English' },
+  { lang: 'fr', label: 'Français' },
+];
+
+// Public page (no login, see proxy.ts) in the colours of the sign-in pages
+export const LegalPage = ({
+  lang,
+  path,
+  document: { title, intro, sections },
+}: {
+  lang: LegalLang;
+  path: string;
+  document: LegalDocument;
 }) => {
   const linkClass = 'hover:text-white transition-colors';
+  const ui = UI[lang];
   return (
-    // lbox: the text is English only, while ChangeDir flips the document to RTL
-    // for Arabic and Hebrew interfaces. global.scss forces [dir='ltr'] back to
-    // RTL there, so dir="ltr" cannot be used; .lbox keeps the page LTR.
-    <div className="lbox min-h-screen w-full bg-[#111820] text-[#C3CCD8]">
+    // lbox: the text is English or French only, while ChangeDir flips the
+    // document to RTL for Arabic and Hebrew interfaces. global.scss forces
+    // [dir='ltr'] back to RTL there, so dir="ltr" cannot be used; .lbox keeps
+    // the page LTR.
+    <div
+      lang={lang}
+      className="lbox min-h-screen w-full bg-[#111820] text-[#C3CCD8]"
+    >
       <header className="border-b border-white/10 bg-[#18222E]">
         <div className="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-[12px] px-[20px] py-[16px]">
           <Link href="/" aria-label="Tayra Social">
             <LogoTextComponent />
           </Link>
           <nav className="flex gap-[20px] text-[14px]">
-            <Link href={TERMS_URL} className={linkClass}>
-              Terms
+            <Link href={legalHref(lang, TERMS_URL)} className={linkClass}>
+              {ui.terms}
             </Link>
-            <Link href={PRIVACY_URL} className={linkClass}>
-              Privacy
+            <Link href={legalHref(lang, PRIVACY_URL)} className={linkClass}>
+              {ui.privacy}
             </Link>
             <Link href="/auth/login" className={linkClass}>
-              Sign in
+              {ui.signIn}
             </Link>
           </nav>
         </div>
       </header>
 
       <main className="mx-auto max-w-[1120px] px-[20px] py-[40px] lg:py-[56px]">
+        <nav
+          aria-label="Language"
+          className="mb-[24px] flex gap-[8px] text-[13px]"
+        >
+          {LANGUAGES.map((l) => (
+            <a
+              key={l.lang}
+              href={`${path}?lang=${l.lang}`}
+              hrefLang={l.lang}
+              aria-current={l.lang === lang ? 'true' : undefined}
+              className={
+                l.lang === lang
+                  ? 'rounded-full bg-[#C9A753] px-[12px] py-[4px] font-[600] text-[#111820]'
+                  : 'rounded-full px-[12px] py-[4px] ring-1 ring-white/15 hover:text-white'
+              }
+            >
+              {l.label}
+            </a>
+          ))}
+        </nav>
         <div className="mb-[16px] h-[3px] w-[48px] rounded-full bg-[#C9A753]" />
         <h1 className="text-[32px] font-[700] leading-[1.2] tracking-[-0.5px] text-white lg:text-[40px]">
           {title}
         </h1>
         <p className="mt-[8px] text-[14px]">
-          Last updated: {LEGAL.lastUpdated}
+          {ui.updated} {LEGAL.lastUpdated[lang]}
         </p>
-        <div className="mt-[20px] max-w-[760px] text-[16px] leading-[1.7]">
+        {LEGAL.draft && (
+          <p className="mt-[16px] max-w-[760px] rounded-[8px] bg-[#C9A753]/10 px-[14px] py-[10px] text-[14px] text-[#E5C97A] ring-1 ring-[#C9A753]/30">
+            {ui.draft}
+          </p>
+        )}
+        <div className="mt-[20px] max-w-[760px] text-[16px] leading-[1.7] [&_a]:text-[#E5C97A] [&_a]:underline [&_a]:underline-offset-2">
           {intro}
         </div>
 
         <div className="mt-[40px] flex flex-col gap-[40px] lg:flex-row">
           <nav
-            aria-label="Contents"
+            aria-label={ui.contents}
             className="lg:sticky lg:top-[24px] lg:w-[260px] lg:shrink-0 lg:self-start"
           >
             <div className="rounded-[12px] bg-[#18222E] p-[20px]">
               <div className="mb-[12px] text-[12px] font-[600] uppercase tracking-[1px] text-[#C9A753]">
-                Contents
+                {ui.contents}
               </div>
               <ol className="flex flex-col gap-[8px] text-[14px]">
                 {sections.map((section, index) => (
