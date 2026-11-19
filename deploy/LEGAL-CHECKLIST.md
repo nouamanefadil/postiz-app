@@ -48,7 +48,7 @@ Where to fill things in:
 | 6 | ~~`[SUPPORT_PHONE_TO_CONFIRM]`~~ | `phone` | Done: +212 6 63 29 05 59 (operator, 2026-11-19) |
 | 7 | ~~`[HOSTING_LOCATION_TO_VERIFY]`~~ | `hostingLocation` | Done: Paris, France (operator, 2026-11-19) |
 | 8 | `[CNDP_FORMALITIES_TO_VERIFY]` | `cndp` | Reference of the CNDP declaration or authorisation (receipt number and date) once obtained. Do not fill in before the formality is done. Status: not filed yet (operator, 2026-11-19); the token stays visible |
-| 9 | `[COMPETENT_COURT_TO_CONFIRM]` | `court` | Competent courts for disputes, to choose with a lawyer |
+| 9 | `[COMPETENT_COURT_TO_CONFIRM]` | `court` | Competent courts for disputes, to choose with a lawyer. Status: left to the lawyer (operator, 2026-11-19); the token stays visible |
 
 Set `draft: false` and update `lastUpdated` only when all items are resolved.
 
