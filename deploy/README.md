@@ -48,7 +48,7 @@ Runs on every pull request into `main` and every push to `main`.
 | Type check worker | `tsc --noEmit -p apps/orchestrator/tsconfig.build.json` | yes |
 | Type check frontend | `tsc --noEmit -p apps/frontend/tsconfig.json` | yes |
 | ESLint | changed files under `apps/frontend/src`, frontend config | **no** (see below) |
-| Regression tests | `apps/backend/test/*.test.ts` (`node:assert` scripts, run with the installed `@swc-node/register`) | yes |
+| Regression tests | `apps/backend/test/*.test.ts` (`node:assert` scripts, run with the installed `@swc-node/register`), with a throwaway Postgres service (`DATABASE_URL`, schema from `pnpm run prisma-db-push`) | yes |
 | Shellcheck | `deploy/vps/*.sh` | yes |
 | Compose | `docker compose -f docker-compose.yaml config` | yes |
 | Docker build (PRs) | `Dockerfile.dev`, BuildKit checks, image contents check | yes |

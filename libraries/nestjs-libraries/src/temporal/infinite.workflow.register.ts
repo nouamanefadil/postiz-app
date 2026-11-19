@@ -7,14 +7,17 @@ export class InfiniteWorkflowRegister implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     if (!!process.env.RUN_CRON) {
-      try {
-        await this._temporalService.client
-          ?.getRawClient()
-          ?.workflow?.start('missingPostWorkflow', {
-            workflowId: 'missing-post-workflow',
-            taskQueue: 'main',
-          });
-      } catch (err) {}
+      // a workflow that is already running makes start() throw, which is fine
+      for (const [name, workflowId] of [
+        ['missingPostWorkflow', 'missing-post-workflow'],
+        ['purgeDeletedWorkflow', 'purge-deleted-workflow'],
+      ]) {
+        try {
+          await this._temporalService.client
+            ?.getRawClient()
+            ?.workflow?.start(name, { workflowId, taskQueue: 'main' });
+        } catch (err) {}
+      }
     }
   }
 }
