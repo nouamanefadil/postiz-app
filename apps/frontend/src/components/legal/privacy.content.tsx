@@ -608,12 +608,12 @@ const en: LegalDocument = {
               for as long as your account exists.
             </li>
             <li>
-              The Service does not purge data automatically. Posts, media,
-              channels and accounts that are deleted are hidden or pseudonymised
-              (see below) but stay in the database, and uploaded files stay on
-              the server, until we erase them at your request. Maximum period
-              before automatic erasure:{' '}
-              <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
+              Posts, media, channels, accounts and workspaces that are deleted
+              are first hidden or pseudonymised (see below). A daily job then
+              erases them from the database, with their uploaded files, 90 days
+              after their deletion. A deleted file that is still used elsewhere
+              (for example in a post that was not deleted) is kept until it is
+              no longer used. We can erase data sooner at your request.
             </li>
             <li>
               Backups: a full copy of the database is made before each software
@@ -1243,13 +1243,14 @@ const fr: LegalDocument = {
               votre contenu sont conservés tant que votre compte existe.
             </li>
             <li>
-              Le Service ne purge pas les données automatiquement. Les
-              publications, médias, canaux et comptes supprimés sont masqués ou
-              pseudonymisés (voir ci-dessous) mais restent dans la base de
-              données, et les fichiers téléversés restent sur le serveur,
-              jusqu&apos;à ce que nous les effacions à votre demande. Durée
-              maximale avant effacement automatique :{' '}
-              <Todo id="DATA_RETENTION_PERIOD_TO_CONFIRM" />.
+              Les publications, médias, canaux, comptes et espaces de travail
+              supprimés sont d&apos;abord masqués ou pseudonymisés (voir
+              ci-dessous). Une tâche quotidienne les efface ensuite de la base
+              de données, avec leurs fichiers téléversés, 90 jours après leur
+              suppression. Un fichier supprimé encore utilisé ailleurs (par
+              exemple dans une publication non supprimée) est conservé
+              jusqu&apos;à ce qu&apos;il ne soit plus utilisé. Nous pouvons
+              effacer des données plus tôt à votre demande.
             </li>
             <li>
               Sauvegardes : une copie complète de la base de données est

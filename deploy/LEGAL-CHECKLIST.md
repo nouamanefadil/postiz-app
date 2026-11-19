@@ -32,7 +32,7 @@ Where to fill things in:
 | Backups | Pre-deployment only, 7 most recent kept, no time limit | Repository (`deploy/vps/backup.sh`) + production |
 | Proxy logs | Weekly rotation: access logs ~5 weeks, error logs ~11 weeks | Production (Nginx Proxy Manager logrotate) |
 | Application logs | Removed when the container is recreated (each deploy) | Production |
-| Automatic purge | None: deleted data stays until erased manually | Code audit |
+| Automatic purge | Daily job erases deleted posts, media (with files), channels, users and workspaces 90 days after deletion; on in production (`PURGE_DELETED_DATA=true`, 2026-11-19) | Code (`data.purge.service.ts`, PR #10) + production (PR #11) |
 | Analytics / tracking | None enabled: no Plausible, Dub, GTM, Meta pixel, Sentry, ChatBase, billing or attribution tool (each loads only when its env variable is set) | Live page config (2026-11-19) |
 | AI app / MCP authorisations | Not revoked on account deletion: they keep working until revoked (Settings › Apps › Approved Apps) | Code (`oauth.repository.ts` `findByAccessToken`) |
 
@@ -56,7 +56,7 @@ Set `draft: false` and update `lastUpdated` only when all items are resolved.
 
 | # | Token | Where | What to decide |
 | --- | --- | --- | --- |
-| 10 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", 1st bullet | Maximum time before deleted posts, media, channels and accounts are erased automatically. Needs a purge job first; until then, keep the text that says nothing is purged automatically. Target chosen: 90 days (operator, 2026-11-19); not shown on the page until the purge job ships, so the token stays |
+| 10 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", 1st bullet | ~~Maximum time before deleted posts, media, channels and accounts are erased automatically~~ Done: 90 days (operator, 2026-11-19); purge job shipped in PR #10 and enabled in production by PR #11 on 2026-11-19 |
 | 11 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", backups bullet | Maximum age of pre-deployment backups (today only the "7 most recent" rule applies, with no time limit). Target chosen: 90 days (operator, 2026-11-19); needs an automatic cleanup on the VPS before the page can say it, so the token stays |
 | 12 | `[DATA_RETENTION_PERIOD_TO_CONFIRM]` | "Retention and deletion", support emails bullet | ~~How long support emails are kept in the Gmail mailbox~~ Done: until the request is resolved, then deleted within 90 days, by hand (operator, 2026-11-19) |
 | 13 | `[CNDP_FORMALITIES_TO_VERIFY]` | "International data transfers" | How transfers outside Morocco (Hostinger data centre in Paris, France; Cloudflare, Google, Meta, TikTok) are covered under Law 09-08 |
