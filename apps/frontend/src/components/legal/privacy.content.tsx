@@ -687,8 +687,9 @@ const en: LegalDocument = {
               cancelled when you delete your account: they keep working, and can
               still access the workspaces concerned, until you revoke them.
             </strong>{' '}
-            Revoke them before deleting your account, or email <ContactEmail />{' '}
-            to have them revoked.
+            Revoke them yourself in Settings › Apps › Approved Apps before
+            deleting your account. If you have already deleted it, email{' '}
+            <ContactEmail /> and we will review your request.
           </p>
           <h3>Permanent erasure and copies of your data</h3>
           <p>
@@ -696,9 +697,10 @@ const en: LegalDocument = {
             receive a copy of your data, or to have all remaining data erased,
             including deleted posts and uploaded files, email us at{' '}
             <ContactEmail /> from the address of your account. These requests
-            are handled manually and we will confirm once they are completed.
-            Data in backups is removed when those backups are deleted, as
-            described above.
+            are handled manually: we will review them and reply with what was
+            provided or erased, and with any data that has to be kept. Data in
+            backups is removed when those backups are deleted, as described
+            above.
           </p>
           <h3>Deleting data received from Facebook, Instagram or TikTok</h3>
           <p>
@@ -1334,8 +1336,9 @@ const fr: LegalDocument = {
               elles restent valables, et donnent toujours accès aux espaces de
               travail concernés, jusqu&apos;à ce que vous les révoquiez.
             </strong>{' '}
-            Révoquez-les avant de supprimer votre compte, ou écrivez à{' '}
-            <ContactEmail /> pour les faire révoquer.
+            Révoquez-les vous-même dans Paramètres › Apps › Approved Apps avant
+            de supprimer votre compte. Si vous l&apos;avez déjà supprimé,
+            écrivez à <ContactEmail /> et nous examinerons votre demande.
           </p>
           <h3>Effacement définitif et copie de vos données</h3>
           <p>
@@ -1344,9 +1347,11 @@ const fr: LegalDocument = {
             effacer toutes les données restantes, y compris les publications
             supprimées et les fichiers téléversés, écrivez-nous à{' '}
             <ContactEmail /> depuis l&apos;adresse de votre compte. Ces demandes
-            sont traitées manuellement et nous vous confirmerons leur
-            réalisation. Les données présentes dans les sauvegardes sont
-            supprimées avec ces sauvegardes, comme indiqué ci-dessus.
+            sont traitées manuellement : nous les examinerons et vous
+            indiquerons ce qui a été communiqué ou effacé, ainsi que les données
+            qui doivent être conservées. Les données présentes dans les
+            sauvegardes sont supprimées avec ces sauvegardes, comme indiqué
+            ci-dessus.
           </p>
           <h3>Supprimer les données reçues de Facebook, Instagram ou TikTok</h3>
           <p>

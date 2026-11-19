@@ -77,6 +77,9 @@ Set `draft: false` and update `lastUpdated` only when all items are resolved.
 - **Competent courts** and any mandatory mediation step (item 9).
 - Whether the English or the French version prevails in case of conflict (the Terms
   currently say both have the same meaning).
+- **Manual procedures** behind the email requests the policy offers (copy of data,
+  permanent erasure, revoking AI app / MCP authorisations of a deleted account): none
+  is written or tested yet. The text only promises to review and reply, not a result.
 - Response time for data-subject requests (the policy refers to the time limits of
   the applicable law).
 - Whether an individual operator must publish identifiers such as ICE / IF
