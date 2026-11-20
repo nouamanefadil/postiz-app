@@ -71,7 +71,8 @@ const TikTokSettings: FC<{
     if (!videoPath) return;
     const video = document.createElement('video');
     video.preload = 'metadata';
-    video.onloadedmetadata = () => setVideoDuration(video.duration);
+    video.onloadedmetadata = () =>
+      setVideoDuration(Number.isFinite(video.duration) ? video.duration : null);
     video.onerror = () => setVideoDuration(null);
     video.src = videoPath;
     return () => {
@@ -83,21 +84,24 @@ const TikTokSettings: FC<{
 
   // Direct post stays locked until TikTok has answered and the video length
   // is known to be within this creator's limit.
+  const creatorFailed = t(
+    'tiktok_creator_info_failed',
+    'We could not load your TikTok account details. Please close and reopen this screen, or try again later.'
+  );
   const creatorReason = isBusiness
     ? ''
     : creator?.error ||
       (creatorError || (creator && !creator.privacyLevelOptions?.length)
-        ? t(
-            'tiktok_creator_info_failed',
-            'We could not load your TikTok account details. Please close and reopen this screen, or try again later.'
-          )
+        ? creatorFailed
         : !creator
         ? t('tiktok_creator_info_loading', 'Checking your TikTok account...')
         : '');
   const maxDuration = creator?.maxVideoPostDurationSec;
   const durationReason =
-    !videoPath || !maxDuration
+    !videoPath || !creator
       ? ''
+      : !maxDuration
+      ? creatorFailed
       : videoDuration === undefined
       ? t('tiktok_video_length_loading', 'Checking the video length...')
       : videoDuration === null

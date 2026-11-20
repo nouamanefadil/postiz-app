@@ -12,6 +12,8 @@ export const Checkbox = forwardRef<
     name?: string;
     className?: string;
     label?: string;
+    // Accessible name when the visible text sits outside the component.
+    ariaLabel?: string;
     onChange?: (event: {
       target: {
         name?: string;
@@ -21,7 +23,15 @@ export const Checkbox = forwardRef<
     variant?: 'default' | 'hollow';
   }
 >((props, ref: any) => {
-  const { checked, className, label, disableForm, variant, disabled } = props;
+  const {
+    checked,
+    className,
+    label,
+    ariaLabel,
+    disableForm,
+    variant,
+    disabled,
+  } = props;
   const form = useFormContext();
   const register = disableForm ? {} : form.register(props.name!);
   const watch = disableForm ? false : form.watch(props.name!);
@@ -59,7 +69,7 @@ export const Checkbox = forwardRef<
         role="checkbox"
         aria-checked={!!val}
         aria-disabled={disabled || undefined}
-        aria-label={label}
+        aria-label={label || ariaLabel}
         tabIndex={disabled ? -1 : 0}
         onKeyDown={(e) => {
           if (e.key === ' ' || e.key === 'Enter') {
