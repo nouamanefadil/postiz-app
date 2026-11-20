@@ -7,10 +7,13 @@ export const Checkbox = forwardRef<
   null,
   {
     checked?: boolean;
+    disabled?: boolean;
     disableForm?: boolean;
     name?: string;
     className?: string;
     label?: string;
+    // Accessible name when the visible text sits outside the component.
+    ariaLabel?: string;
     onChange?: (event: {
       target: {
         name?: string;
@@ -20,13 +23,24 @@ export const Checkbox = forwardRef<
     variant?: 'default' | 'hollow';
   }
 >((props, ref: any) => {
-  const { checked, className, label, disableForm, variant } = props;
+  const {
+    checked,
+    className,
+    label,
+    ariaLabel,
+    disableForm,
+    variant,
+    disabled,
+  } = props;
   const form = useFormContext();
   const register = disableForm ? {} : form.register(props.name!);
   const watch = disableForm ? false : form.watch(props.name!);
   const val = watch || checked;
 
   const changeStatus = useCallback(() => {
+    if (disabled) {
+      return;
+    }
     props?.onChange?.({
       target: {
         name: props.name!,
@@ -42,15 +56,30 @@ export const Checkbox = forwardRef<
         },
       });
     }
-  }, [val]);
+  }, [val, disabled]);
   return (
-    <div className="flex gap-[10px]">
+    <div
+      className={clsx('flex gap-[10px]', disabled && 'opacity-50')}
+      aria-disabled={disabled || undefined}
+    >
       <div
         ref={ref}
         {...disableForm ? {} : form.register(props.name!)}
         onClick={changeStatus}
+        role="checkbox"
+        aria-checked={!!val}
+        aria-disabled={disabled || undefined}
+        aria-label={label || ariaLabel}
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={(e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            changeStatus();
+          }
+        }}
         className={clsx(
-          'cursor-pointer rounded-[4px] select-none w-[24px] h-[24px] shrink-0 justify-center items-center flex text-white',
+          disabled ? 'cursor-not-allowed' : 'cursor-pointer',
+          'rounded-[4px] select-none w-[24px] h-[24px] shrink-0 justify-center items-center flex text-white',
           variant === 'default' || !variant
             ? 'bg-forth'
             : 'border-customColor1 border-2 bg-customColor2',

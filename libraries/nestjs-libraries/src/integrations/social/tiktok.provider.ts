@@ -25,6 +25,7 @@ import { getSsrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/s
 import { Integration } from '@prisma/client';
 import { Rules } from '@gitroom/nestjs-libraries/chat/rules.description.decorator';
 import { BRAND_NAME } from '@gitroom/helpers/utils/brand';
+import { DashboardFunction } from '@gitroom/nestjs-libraries/integrations/dashboard.function.decorator';
 
 @Rules(
   [
@@ -421,10 +422,14 @@ export class TiktokProvider extends SocialAbstract implements SocialProvider {
     };
   }
 
-  async maxVideoLength(accessToken: string) {
-    const {
-      data: { max_video_post_duration_sec },
-    } = await (
+  // Content Sharing Guidelines: the posting screen must show the creator's
+  // current nickname, privacy options, interaction limits and maximum video
+  // length, and must stop the post when TikTok says the creator cannot post.
+  // Called through POST /integrations/function (not a Temporal activity), so it
+  // uses a plain `fetch` instead of `this.fetch`.
+  @DashboardFunction()
+  async creatorInfo(accessToken: string) {
+    const { data, error } = await (
       await fetch(
         'https://open.tiktokapis.com/v2/post/publish/creator_info/query/',
         {
@@ -435,10 +440,27 @@ export class TiktokProvider extends SocialAbstract implements SocialProvider {
           },
         }
       )
-    ).json();
+    )
+      .json()
+      .catch(() => ({} as any));
+
+    if (!data || (error?.code && error.code !== 'ok')) {
+      return {
+        error: `TikTok says this account cannot post right now${
+          error?.message ? `: ${error.message}` : ''
+        }. Please try again later.`,
+      };
+    }
 
     return {
-      maxDurationSeconds: max_video_post_duration_sec,
+      nickname: data.creator_nickname as string,
+      username: data.creator_username as string,
+      avatar: data.creator_avatar_url as string,
+      privacyLevelOptions: (data.privacy_level_options || []) as string[],
+      commentDisabled: !!data.comment_disabled,
+      duetDisabled: !!data.duet_disabled,
+      stitchDisabled: !!data.stitch_disabled,
+      maxVideoPostDurationSec: data.max_video_post_duration_sec as number,
     };
   }
 

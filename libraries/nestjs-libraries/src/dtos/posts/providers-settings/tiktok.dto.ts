@@ -1,8 +1,22 @@
 import {
-  IsBoolean, ValidateIf, IsIn, IsString, MaxLength, IsOptional, IsDefined, IsNumber, Min, Max, ValidateNested
+  IsBoolean, ValidateIf, IsIn, IsString, MaxLength, IsOptional, IsDefined, IsNumber, Min, Max, ValidateNested,
+  IsEmpty, ValidateBy, ValidationArguments
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { JSONSchema } from 'class-validator-jsonschema';
+
+// A rule on the whole settings object, reported on the property it decorates.
+const TikTokRule = (check: (o: TikTokDto) => boolean, message: string) =>
+  ValidateBy({
+    name: 'tiktokRule',
+    validator: {
+      validate: (_: unknown, args?: ValidationArguments) =>
+        check(args?.object as TikTokDto),
+      defaultMessage: () => message,
+    },
+  });
+
+const isDirectPost = (o: TikTokDto) => o.content_posting_method !== 'UPLOAD';
 
 export class TikTokMusic {
   @IsDefined()
@@ -125,11 +139,41 @@ export class TikTokDto {
   autoAddMusic: 'yes' | 'no';
 
   @IsBoolean()
+  @TikTokRule(
+    (o) =>
+      !isDirectPost(o) || !o.brand_content_toggle || o.privacy_level !== 'SELF_ONLY',
+    'Branded content visibility cannot be set to private.'
+  )
   @JSONSchema({
     description:
-      'Applied only when content_posting_method=DIRECT_POST. Ignored by TikTok on UPLOAD.',
+      'Applied only when content_posting_method=DIRECT_POST. Ignored by TikTok on UPLOAD. Cannot be combined with privacy_level=SELF_ONLY.',
   })
   brand_content_toggle: boolean;
+
+  // Dashboard-only: "Disclose video content" is on, so one of the two brand
+  // options must be picked before the post can go out.
+  @IsOptional()
+  @IsBoolean()
+  @TikTokRule(
+    (o) =>
+      !isDirectPost(o) ||
+      !o.disclose ||
+      !!o.brand_organic_toggle ||
+      !!o.brand_content_toggle,
+    'You need to indicate if your content promotes yourself, a third party, or both.'
+  )
+  @JSONSchema({
+    description:
+      'Optional. When true, brand_organic_toggle or brand_content_toggle must be true.',
+  })
+  disclose?: boolean;
+
+  // Dashboard-only: set by the posting screen when TikTok's creator_info says
+  // the creator cannot post right now or the video is longer than allowed.
+  @IsOptional()
+  @IsEmpty({ message: ({ value }) => String(value) })
+  @JSONSchema({ description: 'Internal, leave empty.' })
+  blocked_reason?: string;
 
   @IsBoolean()
   @IsOptional()

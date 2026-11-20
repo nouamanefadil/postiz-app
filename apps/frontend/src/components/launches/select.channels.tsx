@@ -130,6 +130,7 @@ export const SelectChannels: FC<{
                 disableForm={true}
                 checked={selectedIds.includes(p.id)}
                 onChange={toggle(p.id)}
+                ariaLabel={p.name}
               />
               <img
                 className="w-[24px] h-[24px] rounded-full"
