@@ -45,6 +45,14 @@ const errorsOf = async (settings: object) =>
     []
   );
 
+  // UPLOAD never shows the privacy select, so a blank value must not block it;
+  // Direct Post still needs an explicit choice.
+  assert.deepEqual(
+    await errorsOf({ privacy_level: '', content_posting_method: 'UPLOAD' }),
+    []
+  );
+  assert.equal((await errorsOf({ privacy_level: '' })).length, 1);
+
   // Branded content cannot be private.
   assert.deepEqual(await errorsOf({ brand_content_toggle: true }), [
     'Branded content visibility cannot be set to private.',

@@ -91,6 +91,8 @@ export class TikTokDto {
   })
   title: string;
 
+  // UPLOAD hides and disables the privacy select, so it stays blank there.
+  @ValidateIf(isDirectPost)
   @IsIn([
     'PUBLIC_TO_EVERYONE',
     'MUTUAL_FOLLOW_FRIENDS',
